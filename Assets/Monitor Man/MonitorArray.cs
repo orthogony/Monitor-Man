@@ -23,7 +23,6 @@ namespace MonitorMan
 		public enum ArrayShapes
 		{
 			GRID,
-			GOLDEN_SPIRAL
 		}
 
 		public ArrayShapes arrayShape = ArrayShapes.GRID;
@@ -42,9 +41,6 @@ namespace MonitorMan
 			{
 				case ArrayShapes.GRID:
 					CreateMonitorArray();
-					break;
-				case ArrayShapes.GOLDEN_SPIRAL:
-					CreateMonitorSpiral();
 					break;
 			}
 		}
@@ -87,6 +83,7 @@ namespace MonitorMan
 			}
 		}
 
+#if false
 		private void CreateMonitorSpiral()
 		{
 			var scale = videoPlayer.clip.width / widthInUnits;
@@ -107,7 +104,9 @@ namespace MonitorMan
 
 				if (rectXFrac * videoPlayer.clip.width > rectYFrac * videoPlayer.clip.height)
 				{
+					Debug.Log("Wider than tall; rect is " + rectX + ", " + rectY + " and dims " + rectXFrac + ", " + rectYFrac);
 					var innerXFrac = (videoPlayer.clip.height * rectYFrac) / (videoPlayer.clip.width * rectXFrac);
+					Debug.Log("x fraction is " + innerXFrac);
 					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, rectX + innerXFrac / 2f, rectY + rectYFrac / 2f, innerXFrac * monitorSizeFactor, rectYFrac * monitorSizeFactor);
 					rectX += innerXFrac;
 					rectXFrac -= innerXFrac;
@@ -115,13 +114,14 @@ namespace MonitorMan
 				else
 				{
 					var innerYFrac = (videoPlayer.clip.width * rectXFrac) / (videoPlayer.clip.height * rectYFrac);
-					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, rectX + rectXFrac / 2f, rectY + rectYFrac / 2f, rectXFrac * monitorSizeFactor, innerYFrac * monitorSizeFactor);
+					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, rectX + rectXFrac / 2f, rectY + innerYFrac / 2f, rectXFrac * monitorSizeFactor, innerYFrac * monitorSizeFactor);
 					rectY += innerYFrac;
 					rectYFrac -= innerYFrac;
 				}
 
 			}
 		}
+#endif
 
 		// Update is called once per frame
 		void Update()
