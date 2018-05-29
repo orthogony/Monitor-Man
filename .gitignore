@@ -1,0 +1,7 @@
+Library/
+Temp/
+ProjectSettings/
+*.meta
+*.sln
+*.csproj
+Assets/Scene/
