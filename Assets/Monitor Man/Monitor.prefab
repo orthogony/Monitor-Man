@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4635670055528676}
   - component: {fileID: 114242485495043076}
   - component: {fileID: 54073786858572644}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Monitor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38,7 +38,7 @@ GameObject:
   - component: {fileID: 4593837233986406}
   - component: {fileID: 33693243484660464}
   - component: {fileID: 23131365090810312}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56,7 +56,7 @@ GameObject:
   - component: {fileID: 33106610044679376}
   - component: {fileID: 65670856534422554}
   - component: {fileID: 23779268676619230}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -199,7 +199,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 112
+  m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!65 &65670856534422554
 BoxCollider:

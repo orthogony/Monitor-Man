@@ -11,7 +11,9 @@ namespace MonitorMan
 		[SerializeField]
 		MeshRenderer screen;
 
-		Rigidbody m_rigidBody;
+		new Rigidbody rigidbody;
+
+		new Collider collider;
 
 		Material screenMat;
 		
@@ -22,6 +24,9 @@ namespace MonitorMan
 		Vector3PID positionController = new Vector3PID();
 		Vector3PID velocityController = new Vector3PID();
 
+		QuaternionPID rotationController = new QuaternionPID();
+		Vector3PID angVelocityController = new Vector3PID();
+
 		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
 		float screenXscale;
 		float screenYscale;
@@ -29,9 +34,17 @@ namespace MonitorMan
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
 
+		private bool stuck = false;
+		private Vector3 lastPosition = Vector3.zero;
+
+		private HashSet<GameObject> ignoredCollisions = new HashSet<GameObject>();
+
 		void Initialize()
 		{
-			m_rigidBody = GetComponent<Rigidbody>();
+			rigidbody = GetComponent<Rigidbody>();
+
+			collider = GetComponentInChildren<Collider>();
+			Assert.IsNotNull(collider);
 
 			Assert.IsNotNull(screen);
 			screenMat = screen.material;
@@ -42,25 +55,71 @@ namespace MonitorMan
 
 		private void Start()
 		{
-			m_rigidBody = GetComponent<Rigidbody>();
+			rigidbody = GetComponent<Rigidbody>();
 		}
-
+		
 		// For some reason this will get called before initialize and after start, even though initialize is called after start?
 		private void FixedUpdate()
 		{
-			var posCorrection = positionController.GetOutput(m_rigidBody.position, rootPosition, Time.fixedDeltaTime);
-			var velCorrection = velocityController.GetOutput(m_rigidBody.velocity, Vector3.zero, Time.fixedDeltaTime);
+			DoStuckCheck();
+
+			var posCorrection = positionController.GetOutput(rigidbody.position, rootPosition, Time.fixedDeltaTime);
+			var velCorrection = velocityController.GetOutput(rigidbody.velocity, Vector3.zero, Time.fixedDeltaTime);
 
 			var force = posCorrection + velCorrection;
-			
-			//Debug.Log("Delta is " + delta);
-			//m_rigidBody.MovePosition(m_rigidBody.position - posDelta * positionConstant);
-			m_rigidBody.AddForce(force);
 
-			//var rotDelta = transform.localRotation - Quaternion.identity;
-			//var rotDelta = Quaternion.Inverse(transform.localRotation);
+			//Debug.Log("Position correction is " + force.ToString("N5"));
 
-			//m_rigidBody.MoveRotation(rotDelta);
+			rigidbody.AddForce(force);
+
+			var rotCorrection = rotationController.GetOutput(rigidbody.rotation, Time.fixedDeltaTime);
+			var angVelCorrection = angVelocityController.GetOutput(rigidbody.angularVelocity, Vector3.zero, Time.fixedDeltaTime);
+
+			var torque = rotCorrection + angVelCorrection;
+
+			// Debug.Log("Rot correction is " + rotCorrection + " from " + m_rigidBody.rotation.eulerAngles + " and torque add is " + torque);
+			rigidbody.AddTorque(torque * 0.2f);
+		}
+
+		private void DoStuckCheck()
+		{
+			/*if (rigidbody.velocity.magnitude > 0.01f)
+			{*/
+			//var offset = Vector3.Distance(rigidbody.position, rootPosition);
+			if (Vector3.Distance(rigidbody.position, rootPosition) > 0.01f)
+			{
+				if (Vector3.Distance(rigidbody.position, lastPosition) < 0.001f * Time.fixedDeltaTime)
+				{
+					stuck = true;
+					//Debug.Log("Got stuck; distance is " + Vector3.Distance(rigidbody.position, lastPosition).ToString("N5") + " and vel is " + rigidbody.velocity.magnitude);
+				}
+			}
+
+			lastPosition = rigidbody.position;
+		}
+
+		private void OnCollisionStay(Collision collision)
+		{
+			if (collision.gameObject.GetComponent<Monitor>() != null && !ignoredCollisions.Contains(collision.gameObject))
+			{
+				if (stuck)
+				{
+					Physics.IgnoreCollision(collision.collider, collider);
+					ignoredCollisions.Add(collision.gameObject);
+				}
+			}
+		}
+
+		private void OnCollisionExit(Collision collision)
+		{
+			if (ignoredCollisions.Contains(collision.gameObject))
+			{
+				ignoredCollisions.Remove(collision.gameObject);
+				if (ignoredCollisions.Count == 0)
+				{
+					stuck = false;
+				}
+			}
 		}
 
 		//internal void SetParameters(float videoWidth, float videoHeight, float startXPct, float endXPct, float startYPct, float endYPct)
@@ -88,7 +147,7 @@ namespace MonitorMan
 			//Debug.Log("Center x and y are " + centerX + ", " + centerY);
 			
 			transform.localPosition = new Vector3((centerX - videoWidth / 2) / pixelsToUnits, (centerY - videoHeight / 2) / pixelsToUnits, 0);
-			rootPosition = m_rigidBody.position;
+			rootPosition = rigidbody.position;
 			transform.localRotation = Quaternion.identity;
 
 			//Debug.Log("x scale is shaping up 

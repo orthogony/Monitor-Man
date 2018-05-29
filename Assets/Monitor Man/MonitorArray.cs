@@ -18,7 +18,7 @@ namespace MonitorMan
 
 		public float widthInUnits = 5f;
 
-		public float monitorSizeFactor = 0.95f;
+		public float monitorSizeFactor = 0.9f;
 
 		public int arrayWidth = 3;
 		public int arrayHeight = 3;
@@ -38,7 +38,15 @@ namespace MonitorMan
 			videoPlayer = GetComponent<VideoPlayer>();
 
 			Gizmos.color = Color.yellow;
-			Gizmos.DrawWireCube(transform.position, new Vector3(widthInUnits, widthInUnits * videoPlayer.clip.height / videoPlayer.clip.width, .3f));
+
+			if (videoPlayer.clip != null)
+			{
+				Gizmos.DrawWireCube(transform.position, new Vector3(widthInUnits, widthInUnits * videoPlayer.clip.height / videoPlayer.clip.width, .3f));
+			}
+			else
+			{
+				Gizmos.DrawWireCube(transform.position, new Vector3(widthInUnits, widthInUnits * 10 / 16f, .3f));
+			}
 		}
 
 		private void CreateMonitorArray()
