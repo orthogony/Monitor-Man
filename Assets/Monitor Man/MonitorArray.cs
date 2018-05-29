@@ -20,6 +20,14 @@ namespace MonitorMan
 
 		public float monitorSizeFactor = 0.9f;
 
+		public enum ArrayShapes
+		{
+			GRID,
+			GOLDEN_SPIRAL
+		}
+
+		public ArrayShapes arrayShape = ArrayShapes.GRID;
+
 		public int arrayWidth = 3;
 		public int arrayHeight = 3;
 
@@ -30,7 +38,15 @@ namespace MonitorMan
 
 			Assert.AreEqual(VideoRenderMode.APIOnly, videoPlayer.renderMode, "Video player must be set to API render mode to be used with monitor array");
 
-			CreateMonitorArray();
+			switch (arrayShape)
+			{
+				case ArrayShapes.GRID:
+					CreateMonitorArray();
+					break;
+				case ArrayShapes.GOLDEN_SPIRAL:
+					CreateMonitorSpiral();
+					break;
+			}
 		}
 
 		private void OnDrawGizmos()
@@ -68,6 +84,42 @@ namespace MonitorMan
 					var yPos = (j) / (float)(arrayHeight) + yFrac / 2f;
 					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
 				}
+			}
+		}
+
+		private void CreateMonitorSpiral()
+		{
+			var scale = videoPlayer.clip.width / widthInUnits;
+
+			var numMonitorsInSpiral = arrayWidth * arrayHeight; // for now...
+
+			float rectX = 0; // where our "outer" rectangle is
+			float rectY = 0;
+
+			float rectYFrac = 1; // what percentage of the whole rectangle our "outer" rectangle occupies
+			float rectXFrac = 1;
+
+			for (int i = 0; i < numMonitorsInSpiral; i++)
+			{
+				var m = Instantiate<Monitor>(monitorPrefab, transform);
+
+				monitors.Add(m);
+
+				if (rectXFrac * videoPlayer.clip.width > rectYFrac * videoPlayer.clip.height)
+				{
+					var innerXFrac = (videoPlayer.clip.height * rectYFrac) / (videoPlayer.clip.width * rectXFrac);
+					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, rectX + innerXFrac / 2f, rectY + rectYFrac / 2f, innerXFrac * monitorSizeFactor, rectYFrac * monitorSizeFactor);
+					rectX += innerXFrac;
+					rectXFrac -= innerXFrac;
+				}
+				else
+				{
+					var innerYFrac = (videoPlayer.clip.width * rectXFrac) / (videoPlayer.clip.height * rectYFrac);
+					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, rectX + rectXFrac / 2f, rectY + rectYFrac / 2f, rectXFrac * monitorSizeFactor, innerYFrac * monitorSizeFactor);
+					rectY += innerYFrac;
+					rectYFrac -= innerYFrac;
+				}
+
 			}
 		}
 
