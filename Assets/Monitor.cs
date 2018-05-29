@@ -17,11 +17,18 @@ namespace MonitorMan
 
 		int xstart, screenWidth, ystart, screenHeight; // all in pixels
 
+		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
+		float screenXscale;
+		float screenYscale;
+
 		// Use this for initialization
 		void Start()
 		{
 			Assert.IsNotNull(screen);
 			screenMat = screen.material;
+
+			screenXscale = screen.transform.localScale.x;
+			screenYscale = screen.transform.localScale.y;
 		}
 
 		//internal void SetParameters(float videoWidth, float videoHeight, float startXPct, float endXPct, float startYPct, float endYPct)
@@ -37,10 +44,10 @@ namespace MonitorMan
 		/// <param name="yFrac"></param>
 		internal void SetParameters(float pixelsToUnits, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
 		{
-			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
+			Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
 
-			screenWidth = Mathf.RoundToInt(xFrac * videoWidth);
-			screenHeight = Mathf.RoundToInt(yFrac * videoHeight);
+			var monitorWidth = xFrac * videoWidth;
+			var monitorHeight = yFrac * videoHeight;
 
 			var centerX = videoWidth * xPos; // in unrounded pixels
 			var centerY = videoHeight * yPos; // in unrounded pixels
@@ -50,6 +57,12 @@ namespace MonitorMan
 			transform.localPosition = new Vector3((centerX - videoWidth / 2) / pixelsToUnits, (centerY - videoHeight / 2) / pixelsToUnits, 0);
 			transform.rotation = Quaternion.identity;
 
+			//Debug.Log("x scale is shaping up 
+			transform.localScale = new Vector3(monitorWidth / pixelsToUnits, monitorHeight / pixelsToUnits, 1);
+
+			screenWidth = Mathf.RoundToInt(monitorWidth * screenXscale);
+			screenHeight = Mathf.RoundToInt(monitorHeight * screenYscale);
+
 			xstart = Mathf.RoundToInt(centerX - screenWidth / 2);
 			ystart = Mathf.RoundToInt(centerY - screenHeight / 2);
 
@@ -57,7 +70,7 @@ namespace MonitorMan
 			{
 				Debug.LogWarning("it's " + xstart);
 			}
-			if (xstart + screenWidth < 0)
+			if (xstart + screenWidth > videoWidth)
 			{
 				Debug.LogWarning("it's " + (xstart + screenWidth));
 			}
@@ -65,7 +78,7 @@ namespace MonitorMan
 			{
 				Debug.LogWarning("it's " + ystart);
 			}
-			if (ystart + screenHeight < 0)
+			if (ystart + screenHeight > videoHeight)
 			{
 				Debug.LogWarning("it's " + (ystart + screenHeight));
 			}

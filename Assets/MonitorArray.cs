@@ -46,8 +46,8 @@ namespace MonitorMan
 
 					monitors.Add(m);
 					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
-					var xPos = (i + 1) / (float)(1 + arrayWidth);
-					var yPos = (j + 1) / (float)(1 + arrayHeight);
+					var xPos = (i) / (float)(arrayWidth) + xFrac / 2f;
+					var yPos = (j) / (float)(arrayHeight) + yFrac / 2f;
 					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac, yFrac);
 				}
 			}
