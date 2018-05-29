@@ -32,9 +32,9 @@ namespace MonitorMan
 		public int arrayWidth = 3;
 		public int arrayHeight = 3;
 
-		public float clumpingFactor = 0.2f;
+		float clumpingFactor = 0.5f;
 
-		public float squareMonitorBias = 0.1f;
+		float squareMonitorBias = 0.4f;
 
 		// Use this for initialization
 		void Start()
@@ -113,10 +113,21 @@ namespace MonitorMan
 				for (int j = y; j < y + ydim; j++)
 				{
 					if (occupied[i, j] == 1)
-						return true;
+						return false;
 				}
 			}
 			return true;
+		}
+
+		private void ReserveArea(int[,] occupied, int x, int y, int xdim, int ydim)
+		{
+			for (int i = x; i < x + xdim; i++)
+			{
+				for (int j = y; j < y + ydim; j++)
+				{
+					occupied[i, j] = 1;
+				}
+			}
 		}
 
 		private void Clump(int i, int j, int[,] occupied, int maxDimension, ref float xPos, ref float yPos, ref float xFrac, ref float yFrac)
@@ -131,16 +142,7 @@ namespace MonitorMan
 					{
 						if (i < arrayWidth - 2 && j < arrayHeight - 2 && IsAreaUnoccupied(occupied, i, j, 3, 3))
 						{
-							occupied[i + 1, j] = 1;
-							occupied[i + 2, j] = 1;
-
-							occupied[i, j + 1] = 1;
-							occupied[i + 1, j + 1] = 1;
-							occupied[i + 2, j + 1] = 1;
-
-							occupied[i, j + 2] = 1;
-							occupied[i + 1, j + 2] = 1;
-							occupied[i + 2, j + 2] = 1;
+							ReserveArea(occupied, i, j, 3, 3);
 
 							xPos += xFrac;
 							yPos += yFrac;
@@ -153,41 +155,17 @@ namespace MonitorMan
 					{
 						if (i < arrayWidth - 1 && j < arrayHeight - 1 && IsAreaUnoccupied(occupied, i, j, 2, 2))
 						{
-							occupied[i + 1, j] = 1;
-							occupied[i, j + 1] = 1;
-							occupied[i + 1, j + 1] = 1;
+							ReserveArea(occupied, i, j, 2, 2);
 
 							xPos += xFrac / 2f;
 							yPos += yFrac / 2f;
 
 							xFrac *= 2;
-							yFrac *= 2;
-						}
-					}
-				}
-				else
-				{
-					if (UnityEngine.Random.value < 0.5f)
-					{
-						if (i < arrayWidth - 1 &&  IsAreaUnoccupied(occupied, i, j, 2, 1))
-						{
-							occupied[i + 1, j] = 1;
-							xPos += xFrac / 2f;
-							xFrac *= 2;
-						}
-					}
-					else
-					{
-						if (j < arrayHeight - 1 && IsAreaUnoccupied(occupied, i, j, 1, 2))
-						{
-							occupied[i, j + 1] = 1;
-							yPos += yFrac / 2f;
 							yFrac *= 2;
 						}
 					}
 				}
 			}
-
 		}
 
 		private void CreateMonitorArray()
