@@ -32,9 +32,9 @@ namespace MonitorMan
 		public int arrayWidth = 3;
 		public int arrayHeight = 3;
 
-		float clumpingFactor = 0.5f;
+		float clumpingFactor = 4f;
 
-		float squareMonitorBias = 0.4f;
+		//float squareMonitorBias = 0.4f;
 
 		// Use this for initialization
 		void Start()
@@ -96,7 +96,7 @@ namespace MonitorMan
 						var xFrac = fullXFrac;
 						var yFrac = fullYFrac;
 
-						Clump(i, j, occupied, 4, ref xPos, ref yPos, ref xFrac, ref yFrac);
+						Clump(i, j, occupied, ref xPos, ref yPos, ref xFrac, ref yFrac);
 
 						m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
 
@@ -130,64 +130,18 @@ namespace MonitorMan
 			}
 		}
 
-		private void Clump(int i, int j, bool[,] occupied, int maxDimension, ref float xPos, ref float yPos, ref float xFrac, ref float yFrac)
+		private void Clump(int i, int j, bool[,] occupied, ref float xPos, ref float yPos, ref float xFrac, ref float yFrac)
 		{
-			if (UnityEngine.Random.value < clumpingFactor)
+			var xDim = Mathf.CeilToInt(UnityEngine.Random.value * clumpingFactor);
+			var yDim = Mathf.CeilToInt(UnityEngine.Random.value * clumpingFactor);
+			if (i < arrayWidth - (xDim - 1) && j < arrayHeight - (yDim - 1) && IsAreaUnoccupied(occupied, i, j, xDim, yDim))
 			{
-				// double hit; make this a 2x2 monitor
-				if (UnityEngine.Random.value < squareMonitorBias)
-				{
-					// triple hit; make this a 3x3 monitor
-					if (UnityEngine.Random.value < squareMonitorBias)
-					{
-						if (i < arrayWidth - 2 && j < arrayHeight - 2 && IsAreaUnoccupied(occupied, i, j, 3, 3))
-						{
-							ReserveArea(occupied, i, j, 3, 3);
+				ReserveArea(occupied, i, j, xDim, yDim);
+				xPos += xFrac * (xDim - 1) / 2f;
+				yPos += yFrac * (yDim - 1) / 2f;
 
-							xPos += xFrac;
-							yPos += yFrac;
-
-							xFrac *= 3;
-							yFrac *= 3;
-						}
-					}
-					else
-					{
-						if (i < arrayWidth - 1 && j < arrayHeight - 1 && IsAreaUnoccupied(occupied, i, j, 2, 2))
-						{
-							ReserveArea(occupied, i, j, 2, 2);
-
-							xPos += xFrac / 2f;
-							yPos += yFrac / 2f;
-
-							xFrac *= 2;
-							yFrac *= 2;
-						}
-					}
-				}
-				else
-				{
-					if (UnityEngine.Random.value < 0.5f)
-					{
-						if (i < arrayWidth - 1 && IsAreaUnoccupied(occupied, i, j, 2, 1))
-						{
-							ReserveArea(occupied, i, j, 2, 1);
-
-							xPos += xFrac / 2f;
-							xFrac *= 2;
-						}
-					}
-					else
-					{
-						if (j < arrayHeight - 1 && IsAreaUnoccupied(occupied, i, j, 1, 2))
-						{
-							ReserveArea(occupied, i, j, 1, 2);
-
-							yPos += yFrac / 2f;
-							yFrac *= 2;
-						}
-					}
-				}
+				xFrac *= xDim;
+				yFrac *= yDim;
 			}
 		}
 
