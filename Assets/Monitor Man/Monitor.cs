@@ -110,6 +110,18 @@ namespace MonitorMan
 			}
 		}
 
+		private void OnCollisionEnter(Collision collision)
+		{
+			if (collision.gameObject.GetComponent<Monitor>() != null && !ignoredCollisions.Contains(collision.gameObject))
+			{
+				if (stuck)
+				{
+					Physics.IgnoreCollision(collision.collider, collider);
+					ignoredCollisions.Add(collision.gameObject);
+				}
+			}
+		}
+
 		private void OnCollisionExit(Collision collision)
 		{
 			if (ignoredCollisions.Contains(collision.gameObject))
