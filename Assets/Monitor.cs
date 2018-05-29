@@ -82,13 +82,7 @@ namespace MonitorMan
 			{
 				Debug.LogWarning("it's " + (ystart + screenHeight));
 			}
-
-			/*xstart = Mathf.RoundToInt((float)videoWidth * startXPct);
-			screenWidth = Mathf.RoundToInt((float)videoWidth * endXPct) - xstart;
-			ystart = Mathf.RoundToInt((float)videoHeight * startYPct);
-			screenHeight = Mathf.RoundToInt((float)videoHeight * endYPct) - ystart;*/
-
-			//screenTexture = new Texture2D((int)videoPlayer.clip.width, (int)videoPlayer.clip.height, TextureFormat.ARGB32, false);
+			
 			screenTexture = new Texture2D(screenWidth, screenHeight, TextureFormat.ARGB32, false);
 		}
 
@@ -97,6 +91,8 @@ namespace MonitorMan
 			Graphics.CopyTexture(fullFrameTedxture, 0, 0, xstart, ystart, screenWidth, screenHeight, screenTexture, 0, 0, 0, 0);
 
 			screenMat.mainTexture = screenTexture;
+			screenMat.SetTexture("_EmissionMap", screenTexture);
+			//screenMat
 		}
 	}
 }
