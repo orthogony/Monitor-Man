@@ -31,6 +31,14 @@ namespace MonitorMan
 			CreateMonitorArray();
 		}
 
+		private void OnDrawGizmos()
+		{
+			videoPlayer = GetComponent<VideoPlayer>();
+
+			Gizmos.color = Color.yellow;
+			Gizmos.DrawWireCube(transform.position, new Vector3(widthInUnits, widthInUnits * videoPlayer.clip.height / videoPlayer.clip.width, .3f));
+		}
+
 		private void CreateMonitorArray()
 		{
 			var scale = videoPlayer.clip.width / widthInUnits;
