@@ -11,23 +11,56 @@ namespace MonitorMan
 		[SerializeField]
 		MeshRenderer screen;
 
+		Rigidbody m_rigidBody;
+
 		Material screenMat;
 		
 		Texture2D screenTexture;
 
 		int xstart, screenWidth, ystart, screenHeight; // all in pixels
 
+		Vector3PID positionController = new Vector3PID();
+		Vector3PID velocityController = new Vector3PID();
+
 		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
 		float screenXscale;
 		float screenYscale;
 		
+		// the localposition it's supposed to be at
+		private Vector3 rootPosition;
+
 		void Initialize()
 		{
+			m_rigidBody = GetComponent<Rigidbody>();
+
 			Assert.IsNotNull(screen);
 			screenMat = screen.material;
 
 			screenXscale = screen.transform.localScale.x;
 			screenYscale = screen.transform.localScale.y;
+		}
+
+		private void Start()
+		{
+			m_rigidBody = GetComponent<Rigidbody>();
+		}
+
+		// For some reason this will get called before initialize and after start, even though initialize is called after start?
+		private void FixedUpdate()
+		{
+			var posCorrection = positionController.GetOutput(m_rigidBody.position, rootPosition, Time.fixedDeltaTime);
+			var velCorrection = velocityController.GetOutput(m_rigidBody.velocity, Vector3.zero, Time.fixedDeltaTime);
+
+			var force = posCorrection + velCorrection;
+			
+			//Debug.Log("Delta is " + delta);
+			//m_rigidBody.MovePosition(m_rigidBody.position - posDelta * positionConstant);
+			m_rigidBody.AddForce(force);
+
+			//var rotDelta = transform.localRotation - Quaternion.identity;
+			//var rotDelta = Quaternion.Inverse(transform.localRotation);
+
+			//m_rigidBody.MoveRotation(rotDelta);
 		}
 
 		//internal void SetParameters(float videoWidth, float videoHeight, float startXPct, float endXPct, float startYPct, float endYPct)
@@ -53,9 +86,10 @@ namespace MonitorMan
 			var centerY = videoHeight * yPos; // in unrounded pixels
 
 			//Debug.Log("Center x and y are " + centerX + ", " + centerY);
-
+			
 			transform.localPosition = new Vector3((centerX - videoWidth / 2) / pixelsToUnits, (centerY - videoHeight / 2) / pixelsToUnits, 0);
-			transform.rotation = Quaternion.identity;
+			rootPosition = m_rigidBody.position;
+			transform.localRotation = Quaternion.identity;
 
 			//Debug.Log("x scale is shaping up 
 			transform.localScale = new Vector3(monitorWidth / pixelsToUnits, monitorHeight / pixelsToUnits, 1);

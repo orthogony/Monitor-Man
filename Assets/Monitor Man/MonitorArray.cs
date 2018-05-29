@@ -18,6 +18,8 @@ namespace MonitorMan
 
 		public float widthInUnits = 5f;
 
+		public float monitorSizeFactor = 0.95f;
+
 		public int arrayWidth = 3;
 		public int arrayHeight = 3;
 
@@ -56,7 +58,7 @@ namespace MonitorMan
 					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
 					var xPos = (i) / (float)(arrayWidth) + xFrac / 2f;
 					var yPos = (j) / (float)(arrayHeight) + yFrac / 2f;
-					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac, yFrac);
+					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
 				}
 			}
 		}
