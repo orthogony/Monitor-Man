@@ -77,13 +77,13 @@ namespace MonitorMan
 			var fullXFrac = 1 / (float)arrayWidth;
 			var fullYFrac = 1 / (float)arrayHeight;
 
-			int[,] occupied = new int[arrayWidth, arrayHeight];
+			bool[,] occupied = new bool[arrayWidth, arrayHeight];
 
 			for (int i = 0; i < arrayWidth; i++)
 			{
 				for (int j = 0; j < arrayHeight; j++)
 				{
-					if (occupied[i, j] != 1)
+					if (occupied[i, j] == false)
 					{
 						var m = Instantiate<Monitor>(monitorPrefab, transform);
 
@@ -100,37 +100,37 @@ namespace MonitorMan
 
 						m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
 
-						occupied[i, j] = 1;
+						occupied[i, j] = true;
 					}
 				}
 			}
 		}
 
-		private bool IsAreaUnoccupied(int[,] occupied, int x, int y, int xdim, int ydim)
+		private bool IsAreaUnoccupied(bool[,] occupied, int x, int y, int xdim, int ydim)
 		{
 			for (int i = x; i < x + xdim; i++)
 			{
 				for (int j = y; j < y + ydim; j++)
 				{
-					if (occupied[i, j] == 1)
+					if (occupied[i, j])
 						return false;
 				}
 			}
 			return true;
 		}
 
-		private void ReserveArea(int[,] occupied, int x, int y, int xdim, int ydim)
+		private void ReserveArea(bool[,] occupied, int x, int y, int xdim, int ydim)
 		{
 			for (int i = x; i < x + xdim; i++)
 			{
 				for (int j = y; j < y + ydim; j++)
 				{
-					occupied[i, j] = 1;
+					occupied[i, j] = true;
 				}
 			}
 		}
 
-		private void Clump(int i, int j, int[,] occupied, int maxDimension, ref float xPos, ref float yPos, ref float xFrac, ref float yFrac)
+		private void Clump(int i, int j, bool[,] occupied, int maxDimension, ref float xPos, ref float yPos, ref float xFrac, ref float yFrac)
 		{
 			if (UnityEngine.Random.value < clumpingFactor)
 			{
@@ -161,6 +161,29 @@ namespace MonitorMan
 							yPos += yFrac / 2f;
 
 							xFrac *= 2;
+							yFrac *= 2;
+						}
+					}
+				}
+				else
+				{
+					if (UnityEngine.Random.value < 0.5f)
+					{
+						if (i < arrayWidth - 1 && IsAreaUnoccupied(occupied, i, j, 2, 1))
+						{
+							ReserveArea(occupied, i, j, 2, 1);
+
+							xPos += xFrac / 2f;
+							xFrac *= 2;
+						}
+					}
+					else
+					{
+						if (j < arrayHeight - 1 && IsAreaUnoccupied(occupied, i, j, 1, 2))
+						{
+							ReserveArea(occupied, i, j, 1, 2);
+
+							yPos += yFrac / 2f;
 							yFrac *= 2;
 						}
 					}
