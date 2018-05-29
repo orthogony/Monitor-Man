@@ -20,9 +20,8 @@ namespace MonitorMan
 		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
 		float screenXscale;
 		float screenYscale;
-
-		// Use this for initialization
-		void Start()
+		
+		void Initialize()
 		{
 			Assert.IsNotNull(screen);
 			screenMat = screen.material;
@@ -44,7 +43,8 @@ namespace MonitorMan
 		/// <param name="yFrac"></param>
 		internal void SetParameters(float pixelsToUnits, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
 		{
-			Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
+			Initialize();
+			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
 
 			var monitorWidth = xFrac * videoWidth;
 			var monitorHeight = yFrac * videoHeight;
@@ -59,7 +59,7 @@ namespace MonitorMan
 
 			//Debug.Log("x scale is shaping up 
 			transform.localScale = new Vector3(monitorWidth / pixelsToUnits, monitorHeight / pixelsToUnits, 1);
-
+			
 			screenWidth = Mathf.RoundToInt(monitorWidth * screenXscale);
 			screenHeight = Mathf.RoundToInt(monitorHeight * screenYscale);
 
