@@ -23,12 +23,17 @@ namespace MonitorMan
 		public enum ArrayShapes
 		{
 			GRID,
+			CLUMPED_GRID
 		}
 
 		public ArrayShapes arrayShape = ArrayShapes.GRID;
 
 		public int arrayWidth = 3;
 		public int arrayHeight = 3;
+
+		public float clumpingFactor = 0.2f;
+
+		public float squareMonitorBias = 0.1f;
 
 		// Use this for initialization
 		void Start()
@@ -41,6 +46,9 @@ namespace MonitorMan
 			{
 				case ArrayShapes.GRID:
 					CreateMonitorArray();
+					break;
+				case ArrayShapes.CLUMPED_GRID:
+					CreateClumpedMonitorArray();
 					break;
 			}
 		}
@@ -58,6 +66,110 @@ namespace MonitorMan
 			else
 			{
 				Gizmos.DrawWireCube(transform.position, new Vector3(widthInUnits, widthInUnits * 10 / 16f, .3f));
+			}
+		}
+
+		private void CreateClumpedMonitorArray()
+		{
+			var scale = videoPlayer.clip.width / widthInUnits;
+
+			var fullXFrac = 1 / (float)arrayWidth;
+			var fullYFrac = 1 / (float)arrayHeight;
+
+			int[,] occupied = new int[arrayWidth, arrayHeight];
+
+			for (int i = 0; i < arrayWidth; i++)
+			{
+				for (int j = 0; j < arrayHeight; j++)
+				{
+					if (occupied[i, j] != 1)
+					{
+						var m = Instantiate<Monitor>(monitorPrefab, transform);
+
+						monitors.Add(m);
+
+						//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
+						var xPos = (i) / (float)(arrayWidth) + fullXFrac / 2f;
+						var yPos = (j) / (float)(arrayHeight) + fullYFrac / 2f;
+
+						var xFrac = fullXFrac;
+						var yFrac = fullYFrac;
+
+						if (UnityEngine.Random.value < clumpingFactor)
+						{
+							// double hit; make this a 2x2 monitor
+							if (UnityEngine.Random.value < squareMonitorBias)
+							{ // double hit; make this a 3x3 monitor
+								if (UnityEngine.Random.value < squareMonitorBias)
+								{
+									if (i < arrayWidth - 2 && j < arrayHeight - 2 &&
+									(occupied[i + 1, j] == 0 && occupied[i + 2, j] == 0 &&
+									occupied[i, j + 1] == 0 && occupied[i + 1, j + 1] == 0 && occupied[i + 2, j + 1] == 0 &&
+									occupied[i, j + 2] == 0 && occupied[i + 1, j + 2] == 0 && occupied[i + 2, j + 2] == 0))
+									{
+										occupied[i + 1, j] = 1;
+										occupied[i + 2, j] = 1;
+
+										occupied[i, j + 1] = 1;
+										occupied[i + 1, j + 1] = 1;
+										occupied[i + 2, j + 1] = 1;
+
+										occupied[i, j + 2] = 1;
+										occupied[i + 1, j + 2] = 1;
+										occupied[i + 2, j + 2] = 1;
+
+										xPos += xFrac;
+										yPos += yFrac;
+
+										xFrac *= 3;
+										yFrac *= 3;
+									}
+								}
+								else
+								{
+									if (i < arrayWidth - 1 && j < arrayHeight - 1 &&
+									(occupied[i + 1, j] == 0 && occupied[i, j + 1] == 0 && occupied[i + 1, j + 1] == 0))
+									{
+										occupied[i + 1, j] = 1;
+										occupied[i, j + 1] = 1;
+										occupied[i + 1, j + 1] = 1;
+
+										xPos += xFrac / 2f;
+										yPos += yFrac / 2f;
+
+										xFrac *= 2;
+										yFrac *= 2;
+									}
+								}
+							}
+							else
+							{
+								if (UnityEngine.Random.value < 0.5f)
+								{
+									if (i < arrayWidth - 1 && occupied[i + 1, j] == 0)
+									{
+										occupied[i + 1, j] = 1;
+										xPos += xFrac / 2f;
+										xFrac *= 2;
+									}
+								}
+								else
+								{
+									if (j < arrayHeight - 1 && occupied[i, j + 1] == 0)
+									{
+										occupied[i, j + 1] = 1;
+										yPos += yFrac / 2f;
+										yFrac *= 2;
+									}
+								}
+							}
+						}
+
+						m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
+
+						occupied[i, j] = 1;
+					}
+				}
 			}
 		}
 
