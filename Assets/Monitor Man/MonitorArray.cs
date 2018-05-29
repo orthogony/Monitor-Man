@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -95,75 +96,7 @@ namespace MonitorMan
 						var xFrac = fullXFrac;
 						var yFrac = fullYFrac;
 
-						if (UnityEngine.Random.value < clumpingFactor)
-						{
-							// double hit; make this a 2x2 monitor
-							if (UnityEngine.Random.value < squareMonitorBias)
-							{ // double hit; make this a 3x3 monitor
-								if (UnityEngine.Random.value < squareMonitorBias)
-								{
-									if (i < arrayWidth - 2 && j < arrayHeight - 2 &&
-									(occupied[i + 1, j] == 0 && occupied[i + 2, j] == 0 &&
-									occupied[i, j + 1] == 0 && occupied[i + 1, j + 1] == 0 && occupied[i + 2, j + 1] == 0 &&
-									occupied[i, j + 2] == 0 && occupied[i + 1, j + 2] == 0 && occupied[i + 2, j + 2] == 0))
-									{
-										occupied[i + 1, j] = 1;
-										occupied[i + 2, j] = 1;
-
-										occupied[i, j + 1] = 1;
-										occupied[i + 1, j + 1] = 1;
-										occupied[i + 2, j + 1] = 1;
-
-										occupied[i, j + 2] = 1;
-										occupied[i + 1, j + 2] = 1;
-										occupied[i + 2, j + 2] = 1;
-
-										xPos += xFrac;
-										yPos += yFrac;
-
-										xFrac *= 3;
-										yFrac *= 3;
-									}
-								}
-								else
-								{
-									if (i < arrayWidth - 1 && j < arrayHeight - 1 &&
-									(occupied[i + 1, j] == 0 && occupied[i, j + 1] == 0 && occupied[i + 1, j + 1] == 0))
-									{
-										occupied[i + 1, j] = 1;
-										occupied[i, j + 1] = 1;
-										occupied[i + 1, j + 1] = 1;
-
-										xPos += xFrac / 2f;
-										yPos += yFrac / 2f;
-
-										xFrac *= 2;
-										yFrac *= 2;
-									}
-								}
-							}
-							else
-							{
-								if (UnityEngine.Random.value < 0.5f)
-								{
-									if (i < arrayWidth - 1 && occupied[i + 1, j] == 0)
-									{
-										occupied[i + 1, j] = 1;
-										xPos += xFrac / 2f;
-										xFrac *= 2;
-									}
-								}
-								else
-								{
-									if (j < arrayHeight - 1 && occupied[i, j + 1] == 0)
-									{
-										occupied[i, j + 1] = 1;
-										yPos += yFrac / 2f;
-										yFrac *= 2;
-									}
-								}
-							}
-						}
+						Clump(i, j, occupied, 4, ref xPos, ref yPos, ref xFrac, ref yFrac);
 
 						m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
 
@@ -171,6 +104,90 @@ namespace MonitorMan
 					}
 				}
 			}
+		}
+
+		private bool IsAreaUnoccupied(int[,] occupied, int x, int y, int xdim, int ydim)
+		{
+			for (int i = x; i < x + xdim; i++)
+			{
+				for (int j = y; j < y + ydim; j++)
+				{
+					if (occupied[i, j] == 1)
+						return true;
+				}
+			}
+			return true;
+		}
+
+		private void Clump(int i, int j, int[,] occupied, int maxDimension, ref float xPos, ref float yPos, ref float xFrac, ref float yFrac)
+		{
+			if (UnityEngine.Random.value < clumpingFactor)
+			{
+				// double hit; make this a 2x2 monitor
+				if (UnityEngine.Random.value < squareMonitorBias)
+				{
+					// triple hit; make this a 3x3 monitor
+					if (UnityEngine.Random.value < squareMonitorBias)
+					{
+						if (i < arrayWidth - 2 && j < arrayHeight - 2 && IsAreaUnoccupied(occupied, i, j, 3, 3))
+						{
+							occupied[i + 1, j] = 1;
+							occupied[i + 2, j] = 1;
+
+							occupied[i, j + 1] = 1;
+							occupied[i + 1, j + 1] = 1;
+							occupied[i + 2, j + 1] = 1;
+
+							occupied[i, j + 2] = 1;
+							occupied[i + 1, j + 2] = 1;
+							occupied[i + 2, j + 2] = 1;
+
+							xPos += xFrac;
+							yPos += yFrac;
+
+							xFrac *= 3;
+							yFrac *= 3;
+						}
+					}
+					else
+					{
+						if (i < arrayWidth - 1 && j < arrayHeight - 1 && IsAreaUnoccupied(occupied, i, j, 2, 2))
+						{
+							occupied[i + 1, j] = 1;
+							occupied[i, j + 1] = 1;
+							occupied[i + 1, j + 1] = 1;
+
+							xPos += xFrac / 2f;
+							yPos += yFrac / 2f;
+
+							xFrac *= 2;
+							yFrac *= 2;
+						}
+					}
+				}
+				else
+				{
+					if (UnityEngine.Random.value < 0.5f)
+					{
+						if (i < arrayWidth - 1 &&  IsAreaUnoccupied(occupied, i, j, 2, 1))
+						{
+							occupied[i + 1, j] = 1;
+							xPos += xFrac / 2f;
+							xFrac *= 2;
+						}
+					}
+					else
+					{
+						if (j < arrayHeight - 1 && IsAreaUnoccupied(occupied, i, j, 1, 2))
+						{
+							occupied[i, j + 1] = 1;
+							yPos += yFrac / 2f;
+							yFrac *= 2;
+						}
+					}
+				}
+			}
+
 		}
 
 		private void CreateMonitorArray()
