@@ -37,8 +37,39 @@ namespace MonitorMan
 		/// <param name="yFrac"></param>
 		internal void SetParameters(float pixelsToUnits, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
 		{
+			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
+
 			screenWidth = Mathf.RoundToInt(xFrac * videoWidth);
 			screenHeight = Mathf.RoundToInt(yFrac * videoHeight);
+
+			var centerX = videoWidth * xPos; // in unrounded pixels
+			var centerY = videoHeight * yPos; // in unrounded pixels
+
+			//Debug.Log("Center x and y are " + centerX + ", " + centerY);
+
+			transform.localPosition = new Vector3((centerX - videoWidth / 2) / pixelsToUnits, (centerY - videoHeight / 2) / pixelsToUnits, 0);
+			transform.rotation = Quaternion.identity;
+
+			xstart = Mathf.RoundToInt(centerX - screenWidth / 2);
+			ystart = Mathf.RoundToInt(centerY - screenHeight / 2);
+
+			if (xstart < 0)
+			{
+				Debug.LogWarning("it's " + xstart);
+			}
+			if (xstart + screenWidth < 0)
+			{
+				Debug.LogWarning("it's " + (xstart + screenWidth));
+			}
+			if (ystart < 0)
+			{
+				Debug.LogWarning("it's " + ystart);
+			}
+			if (ystart + screenHeight < 0)
+			{
+				Debug.LogWarning("it's " + (ystart + screenHeight));
+			}
+
 			/*xstart = Mathf.RoundToInt((float)videoWidth * startXPct);
 			screenWidth = Mathf.RoundToInt((float)videoWidth * endXPct) - xstart;
 			ystart = Mathf.RoundToInt((float)videoHeight * startYPct);

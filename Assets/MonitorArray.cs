@@ -16,6 +16,8 @@ namespace MonitorMan
 
 		List<Monitor> monitors = new List<Monitor>();
 
+		public float widthInUnits = 5f;
+
 		public int arrayWidth = 3;
 		public int arrayHeight = 3;
 
@@ -31,6 +33,11 @@ namespace MonitorMan
 
 		private void CreateMonitorArray()
 		{
+			var scale = videoPlayer.clip.width / widthInUnits;
+
+			var xFrac = 1 / (float)arrayWidth;
+			var yFrac = 1 / (float)arrayHeight;
+
 			for (int i = 0; i < arrayWidth; i++)
 			{
 				for (int j = 0; j < arrayHeight; j++)
@@ -38,7 +45,10 @@ namespace MonitorMan
 					var m = Instantiate<Monitor>(monitorPrefab, transform);
 
 					monitors.Add(m);
-					m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
+					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
+					var xPos = (i + 1) / (float)(1 + arrayWidth);
+					var yPos = (j + 1) / (float)(1 + arrayHeight);
+					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac, yFrac);
 				}
 			}
 		}
