@@ -28,14 +28,16 @@ namespace MonitorMan
 		Vector3PID angVelocityController = new Vector3PID();
 
 		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
-		float screenXscale;
-		float screenYscale;
+		/*float screenXscale;
+		float screenYscale;*/
 		
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
 
 		private bool stuck = false;
 		private Vector3 lastPosition = Vector3.zero;
+
+		float borderSizeInPixels = 7f;
 
 		private HashSet<GameObject> ignoredCollisions = new HashSet<GameObject>();
 
@@ -49,8 +51,8 @@ namespace MonitorMan
 			Assert.IsNotNull(screen);
 			screenMat = screen.material;
 
-			screenXscale = screen.transform.localScale.x;
-			screenYscale = screen.transform.localScale.y;
+			/*screenXscale = screen.transform.localScale.x;
+			screenYscale = screen.transform.localScale.y;*/
 		}
 
 		private void Start()
@@ -164,9 +166,12 @@ namespace MonitorMan
 
 			//Debug.Log("x scale is shaping up 
 			transform.localScale = new Vector3(monitorWidth / pixelsToUnits, monitorHeight / pixelsToUnits, 1);
-			
-			screenWidth = Mathf.RoundToInt(monitorWidth * screenXscale);
-			screenHeight = Mathf.RoundToInt(monitorHeight * screenYscale);
+
+			// calculate the scale of the screen by finding out the scale of the border of the screen
+			screen.transform.localScale = new Vector3((monitorWidth - borderSizeInPixels) / monitorWidth, (monitorHeight - borderSizeInPixels) / monitorHeight, 1);
+
+			screenWidth = Mathf.RoundToInt(monitorWidth * screen.transform.localScale.x);
+			screenHeight = Mathf.RoundToInt(monitorHeight * screen.transform.localScale.y);
 
 			xstart = Mathf.RoundToInt(centerX - screenWidth / 2);
 			ystart = Mathf.RoundToInt(centerY - screenHeight / 2);
