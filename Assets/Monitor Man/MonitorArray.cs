@@ -69,12 +69,7 @@ namespace MonitorMan
 				m.SetBorderSize(borderSize);
 			}
 		}
-
-		public void Create()
-		{
-			//Start();
-		}
-
+		
 		private void DestroyMonitors()
 		{
 			foreach (var m in monitors)
@@ -93,25 +88,6 @@ namespace MonitorMan
 					}
 				}
 			}
-			/*if (Application.isPlaying)
-			{
-				var tempList = transform.Cast<Transform>().ToList();
-				foreach (var child in tempList)
-				{
-					DestroyImmediate(child.gameObject);
-				}
-
-			}
-			else
-			{
-				foreach (var m in monitors)
-				{
-					if (m != null)
-					{
-						Destroy(m.gameObject);
-					}
-				}
-			}*/
 			monitors.Clear();
 		}
 

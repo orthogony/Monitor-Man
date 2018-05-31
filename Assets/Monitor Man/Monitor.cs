@@ -22,19 +22,19 @@ namespace MonitorMan
 
 		int xstart, screenWidth, ystart, screenHeight; // all in pixels
 
-		Vector3PID positionController = new Vector3PID();
-		Vector3PID velocityController = new Vector3PID();
+		Vector3PID positionController;
+		Vector3PID velocityController;
 
-		QuaternionPID rotationController = new QuaternionPID();
-		Vector3PID angVelocityController = new Vector3PID();
+		QuaternionPID rotationController;
+		Vector3PID angVelocityController;
 
 		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
 		/*float screenXscale;
 		float screenYscale;*/
 
 		[SerializeField]
-		[Range(0.1f, 100f)]
-		public float massDensity = 2f;
+		[Range(0.1f, 10f)]
+		public float massDensity = 1f;
 
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
@@ -76,6 +76,14 @@ namespace MonitorMan
 				screenMat = screen.sharedMaterial;
 			}
 			Assert.IsNotNull(screenMat);
+			
+			float kp = 1f;
+			float ki = 0f;
+			float kd = 0.1f;
+			positionController = new Vector3PID(kp, ki, kd);
+			velocityController = new Vector3PID(kp, ki, kd);
+			rotationController = new QuaternionPID(1f, 0.05f, 0f);
+			angVelocityController = new Vector3PID(kp, ki, kd);
 		}
 
 		private void Start()
@@ -95,7 +103,7 @@ namespace MonitorMan
 
 			//Debug.Log("Position correction is " + force.ToString("N5"));
 
-			rigidbody.AddForce(force);
+			rigidbody.AddForce(force * rigidbody.mass);
 
 			var rotCorrection = rotationController.GetOutput(rigidbody.rotation, Time.fixedDeltaTime);
 			var angVelCorrection = angVelocityController.GetOutput(rigidbody.angularVelocity, Vector3.zero, Time.fixedDeltaTime);
@@ -103,7 +111,7 @@ namespace MonitorMan
 			var torque = rotCorrection + angVelCorrection;
 
 			// Debug.Log("Rot correction is " + rotCorrection + " from " + m_rigidBody.rotation.eulerAngles + " and torque add is " + torque);
-			rigidbody.AddTorque(torque * 0.2f);
+			rigidbody.AddTorque(torque);// * rigidbody.mass * 0.2f);
 		}
 
 		private void DoStuckCheck()

@@ -11,6 +11,13 @@ namespace MonitorMan
 		
 		private float P, I, D;
 		private float prevError;
+
+		public PID(float kp, float ki, float kd)
+		{
+			Kp = kp;
+			Ki = ki;
+			Kd = kd;
+		}
 		
 		public float GetOutput(float currentError, float deltaTime)
 		{
@@ -26,9 +33,8 @@ namespace MonitorMan
 	// NB not a real PID
 	public class QuaternionPID : Vector3PID
 	{
-		public QuaternionPID()
+		public QuaternionPID(float kp, float ki, float kd) : base(kp, ki, kd)
 		{
-			SetConstants(0.2f, 0.05f, 0f);
 		}
 
 		// NB doesn't work unless the target is zero
@@ -55,9 +61,16 @@ namespace MonitorMan
 
 	public class Vector3PID
 	{
-		protected PID x = new PID();
-		protected PID y = new PID();
-		protected PID z = new PID();
+		protected PID x;
+		protected PID y;
+		protected PID z;
+
+		public Vector3PID(float kp, float ki, float kd)
+		{
+			x = new PID(kp, ki, kd);
+			y = new PID(kp, ki, kd);
+			z = new PID(kp, ki, kd);
+		}
 
 		public Vector3 GetOutput(Vector3 current, Vector3 target, float deltaTime)
 		{
@@ -68,7 +81,7 @@ namespace MonitorMan
 			return new Vector3(xf, yf, zf);
 		}
 
-		protected void SetConstants(float kp, float ki, float kz)
+		public void SetGain(float kp, float ki, float kz)
 		{
 			x.Kp = kp;
 			x.Ki = ki;

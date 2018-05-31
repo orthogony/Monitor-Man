@@ -19,10 +19,10 @@ public class MonitorArrayEditor : Editor
 	{
 		var array = target as MonitorArray;
 		//var vp = array.GetComponent<UnityEngine.Video.VideoPlayer>();
-		if (GUILayout.Button("Demo"))
+		/*if (GUILayout.Button("Demo"))
 		{
 			array.Create();
-		}
+		}*/
 		base.OnInspectorGUI();
 	}
 }
