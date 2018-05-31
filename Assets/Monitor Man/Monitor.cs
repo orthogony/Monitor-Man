@@ -31,7 +31,11 @@ namespace MonitorMan
 		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
 		/*float screenXscale;
 		float screenYscale;*/
-		
+
+		[SerializeField]
+		[Range(0.1f, 100f)]
+		public float massDensity = 2f;
+
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
 
@@ -42,18 +46,18 @@ namespace MonitorMan
 
 		[SerializeField]
 		[HideInInspector]
-		private float monitorWidth;
+		private float monitorWidthInPixels;
 		[SerializeField]
 		[HideInInspector]
-		private float monitorHeight;
+		private float monitorHeightInPixels;
 		[SerializeField]
 		[HideInInspector]
 		private float centerX;
 		[SerializeField]
 		[HideInInspector]
 		private float centerY;
-
-		private float borderSizeInPixels = 7f;
+		
+		private float borderSizeInPixels;
 
 		void Initialize()
 		{
@@ -63,14 +67,15 @@ namespace MonitorMan
 			Assert.IsNotNull(collider);
 
 			Assert.IsNotNull(screen);
-#if UNITY_EDITOR
-			screenMat = screen.sharedMaterial;
-#else
-			screenMat = screen.material;
-#endif
-
-			/*screenXscale = screen.transform.localScale.x;
-			screenYscale = screen.transform.localScale.y;*/
+			if (Application.isPlaying)
+			{
+				screenMat = screen.material;
+			}
+			else
+			{
+				screenMat = screen.sharedMaterial;
+			}
+			Assert.IsNotNull(screenMat);
 		}
 
 		private void Start()
@@ -161,10 +166,10 @@ namespace MonitorMan
 		private void ResizeScreen()
 		{
 			// calculate the scale of the screen by finding out the scale of the border of the screen
-			screen.transform.localScale = new Vector3((monitorWidth - borderSizeInPixels) / monitorWidth, (monitorHeight - borderSizeInPixels) / monitorHeight, 1);
+			screen.transform.localScale = new Vector3((monitorWidthInPixels - borderSizeInPixels) / monitorWidthInPixels, (monitorHeightInPixels - borderSizeInPixels) / monitorHeightInPixels, 1);
 
-			screenWidth = Mathf.RoundToInt(monitorWidth * screen.transform.localScale.x);
-			screenHeight = Mathf.RoundToInt(monitorHeight * screen.transform.localScale.y);
+			screenWidth = Mathf.RoundToInt(monitorWidthInPixels * screen.transform.localScale.x);
+			screenHeight = Mathf.RoundToInt(monitorHeightInPixels * screen.transform.localScale.y);
 
 			xstart = Mathf.RoundToInt(centerX - screenWidth / 2);
 			ystart = Mathf.RoundToInt(centerY - screenHeight / 2);
@@ -183,13 +188,15 @@ namespace MonitorMan
 		/// <param name="yPos"></param>
 		/// <param name="xFrac">size of the monitor as a fraction of the width of the array</param>
 		/// <param name="yFrac"></param>
-		internal void SetParameters(float pixelsToUnits, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
+		internal void SetParameters(float pixelsToUnits, float borderInPixels, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
 		{
+			borderSizeInPixels = borderInPixels;
+
 			Initialize();
 			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
 
-			monitorWidth = xFrac * videoWidth;
-			monitorHeight = yFrac * videoHeight;
+			monitorWidthInPixels = xFrac * videoWidth;
+			monitorHeightInPixels = yFrac * videoHeight;
 
 			centerX = videoWidth * xPos; // in unrounded pixels
 			centerY = videoHeight * yPos; // in unrounded pixels
@@ -201,8 +208,11 @@ namespace MonitorMan
 			transform.localRotation = Quaternion.identity;
 
 			//Debug.Log("x scale is shaping up 
-			transform.localScale = new Vector3(monitorWidth / pixelsToUnits, monitorHeight / pixelsToUnits, 1);
-			
+			transform.localScale = new Vector3(monitorWidthInPixels / pixelsToUnits, monitorHeightInPixels / pixelsToUnits, 1);
+
+			// basically width x height since z scale is forced to 1
+			rigidbody.mass = transform.localScale.sqrMagnitude * massDensity;
+
 			ResizeScreen();
 
 			if (xstart < 0)
@@ -227,6 +237,7 @@ namespace MonitorMan
 		{
 			Graphics.CopyTexture(fullFrameTedxture, 0, 0, xstart, ystart, screenWidth, screenHeight, screenTexture, 0, 0, 0, 0);
 
+			Assert.IsNotNull(screenMat);
 			screenMat.mainTexture = screenTexture;
 			screenMat.SetTexture("_EmissionMap", screenTexture);
 			//screenMat

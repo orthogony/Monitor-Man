@@ -46,6 +46,7 @@ namespace MonitorMan
 		// Use this for initialization
 		void Start()
 		{
+			DestroyMonitors();
 			videoPlayer = GetComponent<VideoPlayer>();
 
 			Assert.AreEqual(VideoRenderMode.APIOnly, videoPlayer.renderMode, "Video player must be set to API render mode to be used with monitor array");
@@ -71,27 +72,46 @@ namespace MonitorMan
 
 		public void Create()
 		{
-			DestroyMonitors();
-			Start();
+			//Start();
 		}
 
 		private void DestroyMonitors()
 		{
-#if UNITY_EDITOR
-			var tempList = transform.Cast<Transform>().ToList();
-			foreach (var child in tempList)
-			{
-				DestroyImmediate(child.gameObject);
-			}
-#else
 			foreach (var m in monitors)
 			{
 				if (m != null)
 				{
-					Destroy(m.gameObject);
+					if (Application.isPlaying)
+					{
+						// Because they won't be destroyed immediately, i do this so they don't cause any trouble
+						m.gameObject.SetActive(false);
+						Destroy(m.gameObject);
+					}
+					else
+					{
+						DestroyImmediate(m.gameObject);
+					}
 				}
 			}
-#endif
+			/*if (Application.isPlaying)
+			{
+				var tempList = transform.Cast<Transform>().ToList();
+				foreach (var child in tempList)
+				{
+					DestroyImmediate(child.gameObject);
+				}
+
+			}
+			else
+			{
+				foreach (var m in monitors)
+				{
+					if (m != null)
+					{
+						Destroy(m.gameObject);
+					}
+				}
+			}*/
 			monitors.Clear();
 		}
 
@@ -139,7 +159,7 @@ namespace MonitorMan
 
 						Clump(i, j, occupied, ref xPos, ref yPos, ref xFrac, ref yFrac);
 
-						m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
+						m.SetParameters(scale, borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
 
 						occupied[i, j] = true;
 					}
@@ -203,7 +223,7 @@ namespace MonitorMan
 					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
 					var xPos = (i) / (float)(arrayWidth) + xFrac / 2f;
 					var yPos = (j) / (float)(arrayHeight) + yFrac / 2f;
-					m.SetParameters(scale, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
+					m.SetParameters(scale, borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
 				}
 			}
 		}
