@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Video;
@@ -8,13 +9,19 @@ using UnityEngine.Video;
 namespace MonitorMan
 {
 	[RequireComponent(typeof(VideoPlayer))]
+	[ExecuteInEditMode]
 	public class MonitorArray : MonoBehaviour
 	{
+		[SerializeField]
+		[Range(0, 30)]
+		private float borderSize = 7;
+
 		[SerializeField]
 		protected Monitor monitorPrefab;
 
 		VideoPlayer videoPlayer;
 
+		[SerializeField]
 		List<Monitor> monitors = new List<Monitor>();
 
 		public float widthInUnits = 5f;
@@ -33,7 +40,7 @@ namespace MonitorMan
 		public int arrayHeight = 3;
 
 		float clumpingFactor = 4f;
-
+		
 		//float squareMonitorBias = 0.4f;
 
 		// Use this for initialization
@@ -52,6 +59,40 @@ namespace MonitorMan
 					CreateClumpedMonitorArray();
 					break;
 			}
+		}
+
+		private void OnValidate()
+		{
+			foreach (var m in monitors)
+			{
+				m.SetBorderSize(borderSize);
+			}
+		}
+
+		public void Create()
+		{
+			DestroyMonitors();
+			Start();
+		}
+
+		private void DestroyMonitors()
+		{
+#if UNITY_EDITOR
+			var tempList = transform.Cast<Transform>().ToList();
+			foreach (var child in tempList)
+			{
+				DestroyImmediate(child.gameObject);
+			}
+#else
+			foreach (var m in monitors)
+			{
+				if (m != null)
+				{
+					Destroy(m.gameObject);
+				}
+			}
+#endif
+			monitors.Clear();
 		}
 
 		private void OnDrawGizmos()
@@ -157,7 +198,7 @@ namespace MonitorMan
 				for (int j = 0; j < arrayHeight; j++)
 				{
 					var m = Instantiate<Monitor>(monitorPrefab, transform);
-
+					
 					monitors.Add(m);
 					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
 					var xPos = (i) / (float)(arrayWidth) + xFrac / 2f;

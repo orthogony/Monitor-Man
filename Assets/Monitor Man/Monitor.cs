@@ -6,6 +6,7 @@ using UnityEngine.Assertions;
 
 namespace MonitorMan
 {
+	[ExecuteInEditMode]
 	public class Monitor : MonoBehaviour
 	{
 		[SerializeField]
@@ -37,9 +38,22 @@ namespace MonitorMan
 		private bool stuck = false;
 		private Vector3 lastPosition = Vector3.zero;
 
-		float borderSizeInPixels = 7f;
-
 		private HashSet<GameObject> ignoredCollisions = new HashSet<GameObject>();
+
+		[SerializeField]
+		[HideInInspector]
+		private float monitorWidth;
+		[SerializeField]
+		[HideInInspector]
+		private float monitorHeight;
+		[SerializeField]
+		[HideInInspector]
+		private float centerX;
+		[SerializeField]
+		[HideInInspector]
+		private float centerY;
+
+		private float borderSizeInPixels = 7f;
 
 		void Initialize()
 		{
@@ -49,7 +63,11 @@ namespace MonitorMan
 			Assert.IsNotNull(collider);
 
 			Assert.IsNotNull(screen);
+#if UNITY_EDITOR
+			screenMat = screen.sharedMaterial;
+#else
 			screenMat = screen.material;
+#endif
 
 			/*screenXscale = screen.transform.localScale.x;
 			screenYscale = screen.transform.localScale.y;*/
@@ -59,7 +77,7 @@ namespace MonitorMan
 		{
 			rigidbody = GetComponent<Rigidbody>();
 		}
-		
+
 		// For some reason this will get called before initialize and after start, even though initialize is called after start?
 		private void FixedUpdate()
 		{
@@ -85,8 +103,6 @@ namespace MonitorMan
 
 		private void DoStuckCheck()
 		{
-			/*if (rigidbody.velocity.magnitude > 0.01f)
-			{*/
 			//var offset = Vector3.Distance(rigidbody.position, rootPosition);
 			if (Vector3.Distance(rigidbody.position, rootPosition) > 0.01f)
 			{
@@ -136,6 +152,26 @@ namespace MonitorMan
 			}
 		}
 
+		internal void SetBorderSize(float pixels)
+		{
+			borderSizeInPixels = pixels;
+			ResizeScreen();
+		}
+
+		private void ResizeScreen()
+		{
+			// calculate the scale of the screen by finding out the scale of the border of the screen
+			screen.transform.localScale = new Vector3((monitorWidth - borderSizeInPixels) / monitorWidth, (monitorHeight - borderSizeInPixels) / monitorHeight, 1);
+
+			screenWidth = Mathf.RoundToInt(monitorWidth * screen.transform.localScale.x);
+			screenHeight = Mathf.RoundToInt(monitorHeight * screen.transform.localScale.y);
+
+			xstart = Mathf.RoundToInt(centerX - screenWidth / 2);
+			ystart = Mathf.RoundToInt(centerY - screenHeight / 2);
+
+			screenTexture = new Texture2D(screenWidth, screenHeight, TextureFormat.ARGB32, false);
+		}
+
 		//internal void SetParameters(float videoWidth, float videoHeight, float startXPct, float endXPct, float startYPct, float endYPct)
 		/// <summary>
 		/// 
@@ -152,11 +188,11 @@ namespace MonitorMan
 			Initialize();
 			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
 
-			var monitorWidth = xFrac * videoWidth;
-			var monitorHeight = yFrac * videoHeight;
+			monitorWidth = xFrac * videoWidth;
+			monitorHeight = yFrac * videoHeight;
 
-			var centerX = videoWidth * xPos; // in unrounded pixels
-			var centerY = videoHeight * yPos; // in unrounded pixels
+			centerX = videoWidth * xPos; // in unrounded pixels
+			centerY = videoHeight * yPos; // in unrounded pixels
 
 			//Debug.Log("Center x and y are " + centerX + ", " + centerY);
 			
@@ -166,15 +202,8 @@ namespace MonitorMan
 
 			//Debug.Log("x scale is shaping up 
 			transform.localScale = new Vector3(monitorWidth / pixelsToUnits, monitorHeight / pixelsToUnits, 1);
-
-			// calculate the scale of the screen by finding out the scale of the border of the screen
-			screen.transform.localScale = new Vector3((monitorWidth - borderSizeInPixels) / monitorWidth, (monitorHeight - borderSizeInPixels) / monitorHeight, 1);
-
-			screenWidth = Mathf.RoundToInt(monitorWidth * screen.transform.localScale.x);
-			screenHeight = Mathf.RoundToInt(monitorHeight * screen.transform.localScale.y);
-
-			xstart = Mathf.RoundToInt(centerX - screenWidth / 2);
-			ystart = Mathf.RoundToInt(centerY - screenHeight / 2);
+			
+			ResizeScreen();
 
 			if (xstart < 0)
 			{
@@ -192,10 +221,8 @@ namespace MonitorMan
 			{
 				Debug.LogWarning("it's " + (ystart + screenHeight));
 			}
-			
-			screenTexture = new Texture2D(screenWidth, screenHeight, TextureFormat.ARGB32, false);
 		}
-
+		
 		internal void Display(Texture fullFrameTedxture)
 		{
 			Graphics.CopyTexture(fullFrameTedxture, 0, 0, xstart, ystart, screenWidth, screenHeight, screenTexture, 0, 0, 0, 0);
