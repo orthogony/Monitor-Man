@@ -4,6 +4,7 @@ ProjectSettings/
 *.meta
 *.sln
 *.csproj
+*.blend1
 Assets/Scene/
 Assets/Standard Assets/
 Builds/
