@@ -62,6 +62,7 @@ namespace MonitorMan
 		void Initialize()
 		{
 			rigidbody = GetComponent<Rigidbody>();
+			Assert.IsNotNull(rigidbody);
 
 			collider = GetComponentInChildren<Collider>();
 			Assert.IsNotNull(collider);
@@ -96,6 +97,7 @@ namespace MonitorMan
 		{
 			DoStuckCheck();
 
+			Assert.IsNotNull(rigidbody);
 			var posCorrection = positionController.GetOutput(rigidbody.position, rootPosition, Time.fixedDeltaTime);
 			var velCorrection = velocityController.GetOutput(rigidbody.velocity, Vector3.zero, Time.fixedDeltaTime);
 
@@ -196,12 +198,15 @@ namespace MonitorMan
 		/// <param name="yPos"></param>
 		/// <param name="xFrac">size of the monitor as a fraction of the width of the array</param>
 		/// <param name="yFrac"></param>
-		internal void SetParameters(float pixelsToUnits, float borderInPixels, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
+		internal void SetParameters(RenderTexture texture, float pixelsToUnits, float borderInPixels, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
 		{
 			borderSizeInPixels = borderInPixels;
 
 			Initialize();
 			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
+
+			screenMat.mainTexture = texture;
+			screenMat.SetTexture("_EmissionMap", texture);
 
 			monitorWidthInPixels = xFrac * videoWidth;
 			monitorHeightInPixels = yFrac * videoHeight;
@@ -240,15 +245,18 @@ namespace MonitorMan
 				Debug.LogWarning("it's " + (ystart + screenHeight));
 			}
 		}
-		
-		internal void Display(Texture fullFrameTedxture)
+
+		internal void Display(Texture texture)
 		{
-			Graphics.CopyTexture(fullFrameTedxture, 0, 0, xstart, ystart, screenWidth, screenHeight, screenTexture, 0, 0, 0, 0);
+			/*Graphics.CopyTexture(fullFrameTedxture, 0, 0, xstart, ystart, screenWidth, screenHeight, screenTexture, 0, 0, 0, 0);
 
 			Assert.IsNotNull(screenMat);
 			screenMat.mainTexture = screenTexture;
-			screenMat.SetTexture("_EmissionMap", screenTexture);
+			screenMat.SetTexture("_EmissionMap", screenTexture);*/
 			//screenMat
+			screenMat.mainTexture = texture;
+			screenMat.SetTexture("_EmissionMap", texture);
+
 		}
 	}
 }

@@ -49,7 +49,9 @@ namespace MonitorMan
 		int m_arrayHeight = 3;
 		
 		float clumpingFactor = 4f;
-		
+
+		RenderTexture videoRenderTexture;
+
 		//float squareMonitorBias = 0.4f;
 
 		// Use this for initialization
@@ -58,7 +60,9 @@ namespace MonitorMan
 			DestroyMonitors();
 			videoPlayer = GetComponent<VideoPlayer>();
 
-			Assert.AreEqual(VideoRenderMode.APIOnly, videoPlayer.renderMode, "Video player must be set to API render mode to be used with monitor array");
+			videoRenderTexture = new RenderTexture((int)videoPlayer.clip.width, (int)videoPlayer.clip.height, 0);
+			videoPlayer.targetTexture = videoRenderTexture;
+			//Assert.AreEqual(VideoRenderMode.APIOnly, videoPlayer.renderMode, "Video player must be set to API render mode to be used with monitor array");
 
 			switch (m_arrayShape)
 			{
@@ -70,17 +74,14 @@ namespace MonitorMan
 					break;
 			}
 		}
-
-		private void OnValidate()
+		
+		// NB used to be the OnValidate method
+		public void ResizeMonitors()
 		{
 			// Just to make sure we have no empties for whatever reason
 			monitors = monitors.Where(m => m != null).ToList();
 			
 			monitors.ForEach(m => m.SetBorderSize(m_borderSize));
-			/*foreach (var m in monitors)
-			{
-				m.SetBorderSize(m_borderSize);
-			}*/
 		}
 		
 		private void DestroyMonitors()
@@ -158,7 +159,7 @@ namespace MonitorMan
 
 						Clump(i, j, occupied, ref xPos, ref yPos, ref xFrac, ref yFrac);
 
-						m.SetParameters(scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
+						m.SetParameters(videoRenderTexture, scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
 
 						occupied[i, j] = true;
 					}
@@ -222,10 +223,21 @@ namespace MonitorMan
 					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
 					var xPos = (i) / (float)(m_arrayWidth) + xFrac / 2f;
 					var yPos = (j) / (float)(m_arrayHeight) + yFrac / 2f;
-					m.SetParameters(scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
+					m.SetParameters(videoRenderTexture, scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
 				}
 			}
 		}
+
+		/*private void Update()
+		{
+			if (videoPlayer.texture != null)
+			{
+				foreach (var m in monitors)
+				{
+					m.Display(videoPlayer.texture);
+				}
+			}
+		}*/
 
 #if false
 		private void CreateMonitorSpiral()
@@ -266,17 +278,5 @@ namespace MonitorMan
 			}
 		}
 #endif
-
-		// Update is called once per frame
-		void Update()
-		{
-			if (videoPlayer.texture != null)
-			{
-				foreach (var m in monitors)
-				{
-					m.Display(videoPlayer.texture);
-				}
-			}
-		}
 	}
 }

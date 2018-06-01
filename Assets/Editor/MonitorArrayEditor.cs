@@ -38,12 +38,31 @@ public class MonitorArrayEditor : Editor
 			array.Create();
 		}*/
 		//base.OnInspectorGUI();
-		var form = (MonitorArray.ArrayShapes)m_arrayShape.enumValueIndex;
-		
+		bool reformArray = false;
+		bool resizeMonitors = false;
+
+		//var form = (MonitorArray.ArrayShapes)m_arrayShape.enumValueIndex;
+		EditorGUI.BeginChangeCheck();
+
 		EditorGUILayout.PropertyField(m_monitorPrefab);
+		if (EditorGUI.EndChangeCheck())
+		{
+			reformArray = true;
+		}
+
+		// For border size && monitor size
+		EditorGUI.BeginChangeCheck();
+
 		EditorGUILayout.PropertyField(m_borderSize);
+		
 		EditorGUILayout.PropertyField(m_monitorSizeFactor);
 
+		if (EditorGUI.EndChangeCheck())
+		{
+			resizeMonitors = true;
+		}
+
+		// For array-wide properties
 		EditorGUI.BeginChangeCheck();
 
 		EditorGUILayout.PropertyField(m_widthInUnits);
@@ -56,11 +75,21 @@ public class MonitorArrayEditor : Editor
 			EditorGUILayout.PropertyField(m_arrayHeight);
 		}
 
-		serializedObject.ApplyModifiedProperties();
-
 		if (EditorGUI.EndChangeCheck())
 		{
+			reformArray = true;
+		}
+
+		serializedObject.ApplyModifiedProperties();
+
+		if (reformArray)
+		{
 			array.Start();
+		}
+
+		if (resizeMonitors)
+		{
+			array.ResizeMonitors();
 		}
 	}
 }
