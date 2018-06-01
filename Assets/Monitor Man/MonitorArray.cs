@@ -14,19 +14,22 @@ namespace MonitorMan
 	{
 		[SerializeField]
 		[Range(0, 30)]
-		private float borderSize = 7;
+		private float m_borderSize = 7;
 
 		[SerializeField]
-		protected Monitor monitorPrefab;
+		protected Monitor m_monitorPrefab;
 
 		VideoPlayer videoPlayer;
 
 		[SerializeField]
 		List<Monitor> monitors = new List<Monitor>();
 
-		public float widthInUnits = 5f;
+		[Range(0.1f, 200f)]
+		[SerializeField]
+		float m_widthInUnits = 5f;
 
-		public float monitorSizeFactor = 0.9f;
+		[SerializeField]
+		float m_monitorSizeFactor = 0.9f;
 
 		public enum ArrayShapes
 		{
@@ -34,11 +37,14 @@ namespace MonitorMan
 			CLUMPED_GRID
 		}
 
-		public ArrayShapes arrayShape = ArrayShapes.GRID;
-
-		public int arrayWidth = 3;
-		public int arrayHeight = 3;
-
+		[SerializeField]
+		private ArrayShapes m_arrayShape = ArrayShapes.GRID;
+		
+		[SerializeField]
+		int m_arrayWidth = 3;
+		[SerializeField]
+		int m_arrayHeight = 3;
+		
 		float clumpingFactor = 4f;
 		
 		//float squareMonitorBias = 0.4f;
@@ -51,7 +57,7 @@ namespace MonitorMan
 
 			Assert.AreEqual(VideoRenderMode.APIOnly, videoPlayer.renderMode, "Video player must be set to API render mode to be used with monitor array");
 
-			switch (arrayShape)
+			switch (m_arrayShape)
 			{
 				case ArrayShapes.GRID:
 					CreateMonitorArray();
@@ -66,7 +72,7 @@ namespace MonitorMan
 		{
 			foreach (var m in monitors)
 			{
-				m.SetBorderSize(borderSize);
+				m.SetBorderSize(m_borderSize);
 			}
 		}
 		
@@ -99,43 +105,43 @@ namespace MonitorMan
 
 			if (videoPlayer.clip != null)
 			{
-				Gizmos.DrawWireCube(transform.position, new Vector3(widthInUnits, widthInUnits * videoPlayer.clip.height / videoPlayer.clip.width, .3f));
+				Gizmos.DrawWireCube(transform.position, new Vector3(m_widthInUnits, m_widthInUnits * videoPlayer.clip.height / videoPlayer.clip.width, .3f));
 			}
 			else
 			{
-				Gizmos.DrawWireCube(transform.position, new Vector3(widthInUnits, widthInUnits * 10 / 16f, .3f));
+				Gizmos.DrawWireCube(transform.position, new Vector3(m_widthInUnits, m_widthInUnits * 10 / 16f, .3f));
 			}
 		}
 
 		private void CreateClumpedMonitorArray()
 		{
-			var scale = videoPlayer.clip.width / widthInUnits;
+			var scale = videoPlayer.clip.width / m_widthInUnits;
 
-			var fullXFrac = 1 / (float)arrayWidth;
-			var fullYFrac = 1 / (float)arrayHeight;
+			var fullXFrac = 1 / (float)m_arrayWidth;
+			var fullYFrac = 1 / (float)m_arrayHeight;
 
-			bool[,] occupied = new bool[arrayWidth, arrayHeight];
+			bool[,] occupied = new bool[m_arrayWidth, m_arrayHeight];
 
-			for (int i = 0; i < arrayWidth; i++)
+			for (int i = 0; i < m_arrayWidth; i++)
 			{
-				for (int j = 0; j < arrayHeight; j++)
+				for (int j = 0; j < m_arrayHeight; j++)
 				{
 					if (occupied[i, j] == false)
 					{
-						var m = Instantiate<Monitor>(monitorPrefab, transform);
+						var m = Instantiate<Monitor>(m_monitorPrefab, transform);
 
 						monitors.Add(m);
 
 						//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
-						var xPos = (i) / (float)(arrayWidth) + fullXFrac / 2f;
-						var yPos = (j) / (float)(arrayHeight) + fullYFrac / 2f;
+						var xPos = (i) / (float)(m_arrayWidth) + fullXFrac / 2f;
+						var yPos = (j) / (float)(m_arrayHeight) + fullYFrac / 2f;
 
 						var xFrac = fullXFrac;
 						var yFrac = fullYFrac;
 
 						Clump(i, j, occupied, ref xPos, ref yPos, ref xFrac, ref yFrac);
 
-						m.SetParameters(scale, borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
+						m.SetParameters(scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
 
 						occupied[i, j] = true;
 					}
@@ -171,7 +177,7 @@ namespace MonitorMan
 		{
 			var xDim = Mathf.CeilToInt(UnityEngine.Random.value * clumpingFactor);
 			var yDim = Mathf.CeilToInt(UnityEngine.Random.value * clumpingFactor);
-			if (i < arrayWidth - (xDim - 1) && j < arrayHeight - (yDim - 1) && IsAreaUnoccupied(occupied, i, j, xDim, yDim))
+			if (i < m_arrayWidth - (xDim - 1) && j < m_arrayHeight - (yDim - 1) && IsAreaUnoccupied(occupied, i, j, xDim, yDim))
 			{
 				ReserveArea(occupied, i, j, xDim, yDim);
 				xPos += xFrac * (xDim - 1) / 2f;
@@ -184,22 +190,22 @@ namespace MonitorMan
 
 		private void CreateMonitorArray()
 		{
-			var scale = videoPlayer.clip.width / widthInUnits;
+			var scale = videoPlayer.clip.width / m_widthInUnits;
 
-			var xFrac = 1 / (float)arrayWidth;
-			var yFrac = 1 / (float)arrayHeight;
+			var xFrac = 1 / (float)m_arrayWidth;
+			var yFrac = 1 / (float)m_arrayHeight;
 
-			for (int i = 0; i < arrayWidth; i++)
+			for (int i = 0; i < m_arrayWidth; i++)
 			{
-				for (int j = 0; j < arrayHeight; j++)
+				for (int j = 0; j < m_arrayHeight; j++)
 				{
-					var m = Instantiate<Monitor>(monitorPrefab, transform);
+					var m = Instantiate<Monitor>(m_monitorPrefab, transform);
 					
 					monitors.Add(m);
 					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
-					var xPos = (i) / (float)(arrayWidth) + xFrac / 2f;
-					var yPos = (j) / (float)(arrayHeight) + yFrac / 2f;
-					m.SetParameters(scale, borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * monitorSizeFactor, yFrac * monitorSizeFactor);
+					var xPos = (i) / (float)(m_arrayWidth) + xFrac / 2f;
+					var yPos = (j) / (float)(m_arrayHeight) + yFrac / 2f;
+					m.SetParameters(scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
 				}
 			}
 		}
