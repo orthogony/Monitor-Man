@@ -80,7 +80,7 @@ namespace MonitorMan
 			positionController = new Vector3PID(gains);
 			velocityController = new Vector3PID(gains);
 			rotationController = new QuaternionPID(rotationalGains);
-			angVelocityController = new Vector3PID(gains);
+			angVelocityController = new Vector3PID(rotationalGains);//gains);
 		}
 
 		private void Start()
@@ -109,12 +109,11 @@ namespace MonitorMan
 			var torque = rotCorrection + angVelCorrection;
 
 			// Debug.Log("Rot correction is " + rotCorrection + " from " + m_rigidBody.rotation.eulerAngles + " and torque add is " + torque);
-			rigidbody.AddTorque(torque);// * rigidbody.mass * 0.2f);
+			rigidbody.AddTorque(torque * rigidbody.mass);
 		}
-
+		
 		private void DoStuckCheck()
 		{
-			//var offset = Vector3.Distance(rigidbody.position, rootPosition);
 			if (Vector3.Distance(rigidbody.position, rootPosition) > 0.01f)
 			{
 				if (Vector3.Distance(rigidbody.position, lastPosition) < 0.001f * Time.fixedDeltaTime)
