@@ -225,3 +225,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   screen: {fileID: 23131365090810312}
+  massDensity: 1
+  monitorWidth: 0
+  monitorHeight: 0
+  gains:
+    kP: 0.442
+    kI: 0
+    kD: 0
+  rotationalGains:
+    kP: 1
+    kI: 0.05
+    kD: 0

@@ -3,20 +3,34 @@ using UnityEngine;
 
 namespace MonitorMan
 {
+	[Serializable]
+	public class PIDGains
+	{
+		[Range(0,1)]
+		public float kP;
+		[Range(0, 1)]
+		public float kI;
+		[Range(0, 1)]
+		public float kD;
+
+		public PIDGains(float p, float i, float d)
+		{
+			kP = p;
+			kI = i;
+			kD = d;
+		}
+	}
+
 	public class PID
 	{
-		public float Kp = 1.0f;
-		public float Ki = 0.0f;
-		public float Kd = 0.1f;//0.2f;
+		public PIDGains gains;
 		
 		private float P, I, D;
 		private float prevError;
 
-		public PID(float kp, float ki, float kd)
+		public PID(PIDGains gains)
 		{
-			Kp = kp;
-			Ki = ki;
-			Kd = kd;
+			this.gains = gains;
 		}
 		
 		public float GetOutput(float currentError, float deltaTime)
@@ -26,14 +40,14 @@ namespace MonitorMan
 			D = (P - prevError) / deltaTime;
 			prevError = currentError;
 
-			return P * Kp + I * Ki + D * Kd;
+			return P * gains.kP + I * gains.kI + D * gains.kD;
 		}
 	}
 
 	// NB not a real PID
 	public class QuaternionPID : Vector3PID
 	{
-		public QuaternionPID(float kp, float ki, float kd) : base(kp, ki, kd)
+		public QuaternionPID(PIDGains gains) : base(gains)
 		{
 		}
 
@@ -65,11 +79,11 @@ namespace MonitorMan
 		protected PID y;
 		protected PID z;
 
-		public Vector3PID(float kp, float ki, float kd)
+		public Vector3PID(PIDGains gains)
 		{
-			x = new PID(kp, ki, kd);
-			y = new PID(kp, ki, kd);
-			z = new PID(kp, ki, kd);
+			x = new PID(gains);
+			y = new PID(gains);
+			z = new PID(gains);
 		}
 
 		public Vector3 GetOutput(Vector3 current, Vector3 target, float deltaTime)
@@ -81,19 +95,13 @@ namespace MonitorMan
 			return new Vector3(xf, yf, zf);
 		}
 
-		public void SetGain(float kp, float ki, float kz)
+		public void SetGain(PIDGains gains)
 		{
-			x.Kp = kp;
-			x.Ki = ki;
-			x.Kd = kz;
+			x.gains = gains;
 
-			y.Kp = kp;
-			y.Ki = ki;
-			y.Kd = kz;
+			y.gains = gains;
 
-			z.Kp = kp;
-			z.Ki = ki;
-			z.Kd = kz;
+			z.gains = gains;
 		}
 	}
 }

@@ -24,7 +24,7 @@ namespace MonitorMan
 		[SerializeField]
 		List<Monitor> monitors = new List<Monitor>();
 
-		[Range(0.1f, 200f)]
+		[Range(0.1f, 50f)]
 		[SerializeField]
 		float m_widthInUnits = 5f;
 

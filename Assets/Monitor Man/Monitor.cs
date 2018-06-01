@@ -42,6 +42,12 @@ namespace MonitorMan
 		[HideInInspector]
 		float monitorHeight;
 
+		[SerializeField]
+		private PIDGains gains = new PIDGains(1, 0, 0.1f);
+
+		[SerializeField]
+		private PIDGains rotationalGains = new PIDGains(1, 0.05f, 0);
+
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
 
@@ -71,13 +77,10 @@ namespace MonitorMan
 			}
 			Assert.IsNotNull(screenMat);
 			
-			float kp = 1f;
-			float ki = 0f;
-			float kd = 0.1f;
-			positionController = new Vector3PID(kp, ki, kd);
-			velocityController = new Vector3PID(kp, ki, kd);
-			rotationController = new QuaternionPID(1f, 0.05f, 0f);
-			angVelocityController = new Vector3PID(kp, ki, kd);
+			positionController = new Vector3PID(gains);
+			velocityController = new Vector3PID(gains);
+			rotationController = new QuaternionPID(rotationalGains);
+			angVelocityController = new Vector3PID(gains);
 		}
 
 		private void Start()
