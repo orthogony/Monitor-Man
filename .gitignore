@@ -5,6 +5,7 @@ ProjectSettings/
 *.sln
 *.csproj
 *.blend1
+UnityPackageManager/
 Assets/Scene/
 Assets/Standard Assets/
 Builds/
