@@ -83,8 +83,7 @@ namespace MonitorMan
 		{
 			rigidbody = GetComponent<Rigidbody>();
 		}
-
-		// For some reason this will get called before initialize and after start, even though initialize is called after start?
+		
 		private void FixedUpdate()
 		{
 			//DoStuckCheck();

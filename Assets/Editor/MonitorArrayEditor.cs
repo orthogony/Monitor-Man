@@ -30,14 +30,7 @@ public class MonitorArrayEditor : Editor
 
 	public override void OnInspectorGUI()
 	{
-		//serializedObject.Update(); // "updates serialized object's representation"...
 		var array = target as MonitorArray;
-		//var vp = array.GetComponent<UnityEngine.Video.VideoPlayer>();
-		/*if (GUILayout.Button("Demo"))
-		{
-			array.Create();
-		}*/
-		//base.OnInspectorGUI();
 		bool reformArray = false;
 		bool resizeMonitors = false;
 

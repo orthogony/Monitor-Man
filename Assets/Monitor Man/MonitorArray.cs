@@ -53,18 +53,17 @@ namespace MonitorMan
 		float clumpingFactor = 4f;
 
 		RenderTexture videoRenderTexture;
-
-		//float squareMonitorBias = 0.4f;
-
+		
 		// Use this for initialization
 		public void Start()
 		{
 			DestroyMonitors();
 			videoPlayer = GetComponent<VideoPlayer>();
 
+			Assert.AreEqual(VideoRenderMode.RenderTexture, videoPlayer.renderMode, "Video player must be set to Render Texture mode to be used with monitor array");
+
 			videoRenderTexture = new RenderTexture((int)videoPlayer.clip.width, (int)videoPlayer.clip.height, 0);
 			videoPlayer.targetTexture = videoRenderTexture;
-			//Assert.AreEqual(VideoRenderMode.APIOnly, videoPlayer.renderMode, "Video player must be set to API render mode to be used with monitor array");
 
 			switch (m_arrayShape)
 			{
