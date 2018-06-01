@@ -47,10 +47,12 @@ namespace MonitorMan
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
 
+#if false
 		private bool stuck = false;
 		private Vector3 lastPosition = Vector3.zero;
 
 		private HashSet<GameObject> ignoredCollisions = new HashSet<GameObject>();
+#endif
 		
 		private float borderSizeInUnits;
 
