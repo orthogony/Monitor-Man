@@ -32,7 +32,7 @@ namespace MonitorMan
 		float screenYscale;*/
 
 		[SerializeField]
-		[Range(0.1f, 10f)]
+		[Range(0.1f, 1f)]
 		public float massDensity = 1f;
 
 		[SerializeField]
@@ -169,8 +169,7 @@ namespace MonitorMan
 		private void ResizeScreen()
 		{
 			// calculate the scale of the screen by finding out the scale of the border of the screen
-			//screen.transform.localScale = new Vector3((monitorWidth - borderSizeInUnits) / monitorWidth, (monitorHeight - borderSizeInUnits) / monitorHeight, 1);
-			screen.transform.localScale = new Vector3(1, 1, 1);
+			screen.transform.localScale = new Vector3((monitorWidth - borderSizeInUnits) / monitorWidth, (monitorHeight - borderSizeInUnits) / monitorHeight, 1);
 		}
 		
 		internal void SetParameters(RenderTexture texture, float screenWidthInUnits, float screenHeightInUnits, float borderInUnits, float xPos, float yPos, float xFrac, float yFrac)
@@ -181,7 +180,6 @@ namespace MonitorMan
 			monitorHeight = yFrac * screenHeightInUnits;
 
 			Initialize();
-			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
 
 			screenMat.mainTexture = texture;
 			screenMat.SetTexture("_EmissionMap", texture);
@@ -197,11 +195,6 @@ namespace MonitorMan
 				uvs[3] = new Vector2(xPos - xFrac / 2f, yPos + yFrac / 2f);
 				mesh.uv = uvs;
 			}
-			//var uvs = mesh.uv;
-			//Debug.Log("We got " + uvs.Count() + " uvs");
-			//mesh.uvs
-			//screen.mesh
-			//Debug.Log("Center x and y are " + centerX + ", " + centerY);
 
 			transform.localPosition = new Vector3((xPos - 0.5f) * screenWidthInUnits, (yPos - 0.5f) * screenHeightInUnits, 0);
 			rootPosition = rigidbody.position;
