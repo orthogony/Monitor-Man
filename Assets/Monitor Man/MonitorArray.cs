@@ -29,6 +29,7 @@ namespace MonitorMan
 		float m_widthInUnits = 5f;
 
 		[SerializeField]
+		[Range(0.5f, 0.99f)]
 		float m_monitorSizeFactor = 0.9f;
 
 		public enum ArrayShapes
@@ -41,8 +42,10 @@ namespace MonitorMan
 		private ArrayShapes m_arrayShape = ArrayShapes.GRID;
 		
 		[SerializeField]
+		[Range(1, 20)]
 		int m_arrayWidth = 3;
 		[SerializeField]
+		[Range(1, 20)]
 		int m_arrayHeight = 3;
 		
 		float clumpingFactor = 4f;
@@ -50,7 +53,7 @@ namespace MonitorMan
 		//float squareMonitorBias = 0.4f;
 
 		// Use this for initialization
-		void Start()
+		public void Start()
 		{
 			DestroyMonitors();
 			videoPlayer = GetComponent<VideoPlayer>();
@@ -70,10 +73,14 @@ namespace MonitorMan
 
 		private void OnValidate()
 		{
-			foreach (var m in monitors)
+			// Just to make sure we have no empties for whatever reason
+			monitors = monitors.Where(m => m != null).ToList();
+			
+			monitors.ForEach(m => m.SetBorderSize(m_borderSize));
+			/*foreach (var m in monitors)
 			{
 				m.SetBorderSize(m_borderSize);
-			}
+			}*/
 		}
 		
 		private void DestroyMonitors()
@@ -94,6 +101,16 @@ namespace MonitorMan
 					}
 				}
 			}
+
+			// TODO ?? for some reason my monitors list is getting reset to 0 every time.  it serialized fine when i play the game but it's broke in the eidtor fer some reason
+			if (!Application.isPlaying)
+			{
+				foreach (Transform t in transform)
+				{
+					DestroyImmediate(t.gameObject);
+				}
+			}
+
 			monitors.Clear();
 		}
 

@@ -30,7 +30,7 @@ public class MonitorArrayEditor : Editor
 
 	public override void OnInspectorGUI()
 	{
-		// serializedObject.Update() ["updates serialized object's representation"...]
+		//serializedObject.Update(); // "updates serialized object's representation"...
 		var array = target as MonitorArray;
 		//var vp = array.GetComponent<UnityEngine.Video.VideoPlayer>();
 		/*if (GUILayout.Button("Demo"))
@@ -39,13 +39,14 @@ public class MonitorArrayEditor : Editor
 		}*/
 		//base.OnInspectorGUI();
 		var form = (MonitorArray.ArrayShapes)m_arrayShape.enumValueIndex;
-
-		EditorGUILayout.PropertyField(m_widthInUnits);
-
-		EditorGUILayout.LabelField("Monitor");
+		
 		EditorGUILayout.PropertyField(m_monitorPrefab);
 		EditorGUILayout.PropertyField(m_borderSize);
 		EditorGUILayout.PropertyField(m_monitorSizeFactor);
+
+		EditorGUI.BeginChangeCheck();
+
+		EditorGUILayout.PropertyField(m_widthInUnits);
 
 		EditorGUILayout.PropertyField(m_arrayShape);
 
@@ -56,5 +57,10 @@ public class MonitorArrayEditor : Editor
 		}
 
 		serializedObject.ApplyModifiedProperties();
+
+		if (EditorGUI.EndChangeCheck())
+		{
+			array.Start();
+		}
 	}
 }
