@@ -47,6 +47,8 @@ namespace MonitorMan
 		[SerializeField]
 		[Range(1, 20)]
 		int m_arrayHeight = 3;
+
+		private float squareMonitorBias = 0.2f;
 		
 		float clumpingFactor = 4f;
 
@@ -192,7 +194,12 @@ namespace MonitorMan
 		private void Clump(int i, int j, bool[,] occupied, ref float xPos, ref float yPos, ref float xFrac, ref float yFrac)
 		{
 			var xDim = Mathf.CeilToInt(UnityEngine.Random.value * clumpingFactor);
-			var yDim = Mathf.CeilToInt(UnityEngine.Random.value * clumpingFactor);
+			int yDim = xDim;
+			// If we roll a non-square monitor, we have to reroll for the ydim
+			if (UnityEngine.Random.value > squareMonitorBias)
+			{
+				yDim = Mathf.CeilToInt(UnityEngine.Random.value * clumpingFactor);
+			}
 			if (i < m_arrayWidth - (xDim - 1) && j < m_arrayHeight - (yDim - 1) && IsAreaUnoccupied(occupied, i, j, xDim, yDim))
 			{
 				ReserveArea(occupied, i, j, xDim, yDim);

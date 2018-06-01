@@ -26,11 +26,7 @@ namespace MonitorMan
 
 		QuaternionPID rotationController;
 		Vector3PID angVelocityController;
-
-		// These two are the size of the screen relative to the overall monitor (eg .9 means a monitor that is 90% screen, 10% border)
-		/*float screenXscale;
-		float screenYscale;*/
-
+		
 		[SerializeField]
 		[Range(0.1f, 1f)]
 		public float massDensity = 1f;
@@ -43,10 +39,10 @@ namespace MonitorMan
 		float monitorHeight;
 
 		[SerializeField]
-		private PIDGains gains = new PIDGains(1, 0, 0.1f);
+		private PIDGains positionalGains = new PIDGains(0.9f, 0, 0.9f);
 
 		[SerializeField]
-		private PIDGains rotationalGains = new PIDGains(1, 0.05f, 0);
+		private PIDGains rotationalGains = new PIDGains(0.7f, 0.0f, 0.04f);
 
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
@@ -77,8 +73,8 @@ namespace MonitorMan
 			}
 			Assert.IsNotNull(screenMat);
 			
-			positionController = new Vector3PID(gains);
-			velocityController = new Vector3PID(gains);
+			positionController = new Vector3PID(positionalGains);
+			velocityController = new Vector3PID(positionalGains);
 			rotationController = new QuaternionPID(rotationalGains);
 			angVelocityController = new Vector3PID(rotationalGains);//gains);
 		}
@@ -91,7 +87,7 @@ namespace MonitorMan
 		// For some reason this will get called before initialize and after start, even though initialize is called after start?
 		private void FixedUpdate()
 		{
-			DoStuckCheck();
+			//DoStuckCheck();
 
 			Assert.IsNotNull(rigidbody);
 			var posCorrection = positionController.GetOutput(rigidbody.position, rootPosition, Time.fixedDeltaTime);
@@ -111,7 +107,8 @@ namespace MonitorMan
 			// Debug.Log("Rot correction is " + rotCorrection + " from " + m_rigidBody.rotation.eulerAngles + " and torque add is " + torque);
 			rigidbody.AddTorque(torque * rigidbody.mass);
 		}
-		
+
+#if false
 		private void DoStuckCheck()
 		{
 			if (Vector3.Distance(rigidbody.position, rootPosition) > 0.01f)
@@ -161,6 +158,7 @@ namespace MonitorMan
 				}
 			}
 		}
+#endif
 
 		internal void SetBorderSize(float pixels)
 		{
