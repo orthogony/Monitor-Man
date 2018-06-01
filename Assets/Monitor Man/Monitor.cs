@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -19,9 +20,7 @@ namespace MonitorMan
 		Material screenMat;
 		
 		Texture2D screenTexture;
-
-		int xstart, screenWidth, ystart, screenHeight; // all in pixels
-
+		
 		Vector3PID positionController;
 		Vector3PID velocityController;
 
@@ -36,6 +35,13 @@ namespace MonitorMan
 		[Range(0.1f, 10f)]
 		public float massDensity = 1f;
 
+		[SerializeField]
+		[HideInInspector]
+		float monitorWidth;
+		[SerializeField]
+		[HideInInspector]
+		float monitorHeight;
+
 		// the localposition it's supposed to be at
 		private Vector3 rootPosition;
 
@@ -43,21 +49,8 @@ namespace MonitorMan
 		private Vector3 lastPosition = Vector3.zero;
 
 		private HashSet<GameObject> ignoredCollisions = new HashSet<GameObject>();
-
-		[SerializeField]
-		[HideInInspector]
-		private float monitorWidthInPixels;
-		[SerializeField]
-		[HideInInspector]
-		private float monitorHeightInPixels;
-		[SerializeField]
-		[HideInInspector]
-		private float centerX;
-		[SerializeField]
-		[HideInInspector]
-		private float centerY;
 		
-		private float borderSizeInPixels;
+		private float borderSizeInUnits;
 
 		void Initialize()
 		{
@@ -169,94 +162,58 @@ namespace MonitorMan
 
 		internal void SetBorderSize(float pixels)
 		{
-			borderSizeInPixels = pixels;
+			borderSizeInUnits = pixels;
 			ResizeScreen();
 		}
 
 		private void ResizeScreen()
 		{
 			// calculate the scale of the screen by finding out the scale of the border of the screen
-			screen.transform.localScale = new Vector3((monitorWidthInPixels - borderSizeInPixels) / monitorWidthInPixels, (monitorHeightInPixels - borderSizeInPixels) / monitorHeightInPixels, 1);
-
-			screenWidth = Mathf.RoundToInt(monitorWidthInPixels * screen.transform.localScale.x);
-			screenHeight = Mathf.RoundToInt(monitorHeightInPixels * screen.transform.localScale.y);
-
-			xstart = Mathf.RoundToInt(centerX - screenWidth / 2);
-			ystart = Mathf.RoundToInt(centerY - screenHeight / 2);
-
-			screenTexture = new Texture2D(screenWidth, screenHeight, TextureFormat.ARGB32, false);
+			//screen.transform.localScale = new Vector3((monitorWidth - borderSizeInUnits) / monitorWidth, (monitorHeight - borderSizeInUnits) / monitorHeight, 1);
+			screen.transform.localScale = new Vector3(1, 1, 1);
 		}
-
-		//internal void SetParameters(float videoWidth, float videoHeight, float startXPct, float endXPct, float startYPct, float endYPct)
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="pixelsToUnits">the number of video pixels per engine unit (eg "100" means that a 1920x1080p video is 19.2 by 10.8 units [usually meters] in the game world)</param>
-		/// <param name="videoWidth">in pixels</param>
-		/// <param name="videoHeight">in pixels</param>
-		/// <param name="xPos">center of the monitor as a fraction of width of the array</param>
-		/// <param name="yPos"></param>
-		/// <param name="xFrac">size of the monitor as a fraction of the width of the array</param>
-		/// <param name="yFrac"></param>
-		internal void SetParameters(RenderTexture texture, float pixelsToUnits, float borderInPixels, float videoWidth, float videoHeight, float xPos, float yPos, float xFrac, float yFrac)
+		
+		internal void SetParameters(RenderTexture texture, float screenWidthInUnits, float screenHeightInUnits, float borderInUnits, float xPos, float yPos, float xFrac, float yFrac)
 		{
-			borderSizeInPixels = borderInPixels;
+			borderSizeInUnits = borderInUnits;
+
+			monitorWidth = xFrac * screenWidthInUnits;
+			monitorHeight = yFrac * screenHeightInUnits;
 
 			Initialize();
 			//Debug.Log("Parametersa re " + pixelsToUnits + ", " + xPos + ", " + xFrac);
 
 			screenMat.mainTexture = texture;
 			screenMat.SetTexture("_EmissionMap", texture);
-
-			monitorWidthInPixels = xFrac * videoWidth;
-			monitorHeightInPixels = yFrac * videoHeight;
-
-			centerX = videoWidth * xPos; // in unrounded pixels
-			centerY = videoHeight * yPos; // in unrounded pixels
-
-			//Debug.Log("Center x and y are " + centerX + ", " + centerY);
 			
-			transform.localPosition = new Vector3((centerX - videoWidth / 2) / pixelsToUnits, (centerY - videoHeight / 2) / pixelsToUnits, 0);
+			if (Application.isPlaying)
+			{
+				var mesh = screen.gameObject.GetComponent<MeshFilter>().mesh;
+				Vector2[] uvs = new Vector2[4];
+				// NB rounding errors could push these past [0.0, 1] but who cares.  it'll just wrap a tiny little bit.
+				uvs[0] = new Vector2(xPos - xFrac / 2f, yPos - yFrac / 2f);
+				uvs[1] = new Vector2(xPos + xFrac / 2f, yPos + yFrac / 2f);
+				uvs[2] = new Vector2(xPos + xFrac / 2f, yPos - yFrac / 2f);
+				uvs[3] = new Vector2(xPos - xFrac / 2f, yPos + yFrac / 2f);
+				mesh.uv = uvs;
+			}
+			//var uvs = mesh.uv;
+			//Debug.Log("We got " + uvs.Count() + " uvs");
+			//mesh.uvs
+			//screen.mesh
+			//Debug.Log("Center x and y are " + centerX + ", " + centerY);
+
+			transform.localPosition = new Vector3((xPos - 0.5f) * screenWidthInUnits, (yPos - 0.5f) * screenHeightInUnits, 0);
 			rootPosition = rigidbody.position;
 			transform.localRotation = Quaternion.identity;
 
 			//Debug.Log("x scale is shaping up 
-			transform.localScale = new Vector3(monitorWidthInPixels / pixelsToUnits, monitorHeightInPixels / pixelsToUnits, 1);
+			transform.localScale = new Vector3(monitorWidth, monitorHeight, 1);
 
 			// basically width x height since z scale is forced to 1
 			rigidbody.mass = transform.localScale.sqrMagnitude * massDensity;
 
 			ResizeScreen();
-
-			if (xstart < 0)
-			{
-				Debug.LogWarning("it's " + xstart);
-			}
-			if (xstart + screenWidth > videoWidth)
-			{
-				Debug.LogWarning("it's " + (xstart + screenWidth));
-			}
-			if (ystart < 0)
-			{
-				Debug.LogWarning("it's " + ystart);
-			}
-			if (ystart + screenHeight > videoHeight)
-			{
-				Debug.LogWarning("it's " + (ystart + screenHeight));
-			}
-		}
-
-		internal void Display(Texture texture)
-		{
-			/*Graphics.CopyTexture(fullFrameTedxture, 0, 0, xstart, ystart, screenWidth, screenHeight, screenTexture, 0, 0, 0, 0);
-
-			Assert.IsNotNull(screenMat);
-			screenMat.mainTexture = screenTexture;
-			screenMat.SetTexture("_EmissionMap", screenTexture);*/
-			//screenMat
-			screenMat.mainTexture = texture;
-			screenMat.SetTexture("_EmissionMap", texture);
-
 		}
 	}
 }

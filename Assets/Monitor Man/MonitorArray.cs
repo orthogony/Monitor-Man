@@ -13,8 +13,8 @@ namespace MonitorMan
 	public class MonitorArray : MonoBehaviour
 	{
 		[SerializeField]
-		[Range(0, 30)]
-		private float m_borderSize = 7;
+		[Range(0, 10)]
+		private float m_borderSize = 0.1f;
 
 		[SerializeField]
 		protected Monitor m_monitorPrefab;
@@ -133,8 +133,6 @@ namespace MonitorMan
 
 		private void CreateClumpedMonitorArray()
 		{
-			var scale = videoPlayer.clip.width / m_widthInUnits;
-
 			var fullXFrac = 1 / (float)m_arrayWidth;
 			var fullYFrac = 1 / (float)m_arrayHeight;
 
@@ -159,7 +157,7 @@ namespace MonitorMan
 
 						Clump(i, j, occupied, ref xPos, ref yPos, ref xFrac, ref yFrac);
 
-						m.SetParameters(videoRenderTexture, scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
+						m.SetParameters(videoRenderTexture, m_widthInUnits, m_widthInUnits * videoPlayer.clip.height / videoPlayer.clip.width, m_borderSize, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
 
 						occupied[i, j] = true;
 					}
@@ -208,8 +206,6 @@ namespace MonitorMan
 
 		private void CreateMonitorArray()
 		{
-			var scale = videoPlayer.clip.width / m_widthInUnits;
-
 			var xFrac = 1 / (float)m_arrayWidth;
 			var yFrac = 1 / (float)m_arrayHeight;
 
@@ -223,22 +219,11 @@ namespace MonitorMan
 					//m.SetParameters(videoPlayer.clip.width, videoPlayer.clip.height, 0, 0, 1, 1);
 					var xPos = (i) / (float)(m_arrayWidth) + xFrac / 2f;
 					var yPos = (j) / (float)(m_arrayHeight) + yFrac / 2f;
-					m.SetParameters(videoRenderTexture, scale, m_borderSize, videoPlayer.clip.width, videoPlayer.clip.height, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
+					m.SetParameters(videoRenderTexture, m_widthInUnits, m_widthInUnits * videoPlayer.clip.height / videoPlayer.clip.width, m_borderSize, xPos, yPos, xFrac * m_monitorSizeFactor, yFrac * m_monitorSizeFactor);
 				}
 			}
 		}
-
-		/*private void Update()
-		{
-			if (videoPlayer.texture != null)
-			{
-				foreach (var m in monitors)
-				{
-					m.Display(videoPlayer.texture);
-				}
-			}
-		}*/
-
+	
 #if false
 		private void CreateMonitorSpiral()
 		{
